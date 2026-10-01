@@ -1,0 +1,97 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import ProjectRow from '../components/ProjectRow.astro';
+import { getProjects, getLab } from '../lib/content';
+import { profile } from '../data/profile';
+
+const projects = await getProjects();
+const featured = projects.filter((p) => p.data.featured).slice(0, 4);
+const shown = featured.length > 0 ? featured : projects.slice(0, 3);
+const lab = (await getLab()).slice(0, 3);
+---
+
+<BaseLayout>
+  <Hero />
+
+  <section class="wrap section" aria-labelledby="featured-title">
+    <div class="head">
+      <h2 id="featured-title">精選作品</h2>
+      <a href="/projects/">全部作品（{projects.length}）</a>
+    </div>
+    {shown.map((p) => <ProjectRow project={p} />)}
+  </section>
+
+  {
+    lab.length > 0 && (
+      <section class="wrap section" aria-labelledby="lab-title">
+        <div class="head">
+          <h2 id="lab-title">實驗室</h2>
+          <a href="/lab/">所有實驗</a>
+        </div>
+        <ul class="lab">
+          {lab.map((l) => (
+            <li>
+              <a href={`/lab/${l.id}/`}>{l.data.title}</a>
+              <p>{l.data.summary}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="wrap section contact" aria-labelledby="contact-title">
+    <h2 id="contact-title">一起合作</h2>
+    <p class="measure">正在尋找{profile.services.map((s) => s.title).join('、')}相關的工作與專案合作。</p>
+    <p class="actions">
+      <a class="btn is-primary" href="/services/">聯絡我</a>
+      {profile.resume && <a class="btn" href={profile.resume}>下載履歷</a>}
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  .section {
+    margin-top: 6rem;
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+  .head a {
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+  .lab {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1.5rem 2.5rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 1.5rem;
+  }
+  .lab a {
+    font-weight: 650;
+    font-size: 1.1rem;
+  }
+  .lab p {
+    margin-top: 0.3rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .contact p {
+    margin-top: 0.75rem;
+  }
+  .actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+</style>

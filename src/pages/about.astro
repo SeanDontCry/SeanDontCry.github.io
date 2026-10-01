@@ -1,0 +1,112 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { profile } from '../data/profile';
+
+const skills = profile.skills.filter((s) => s.items.length > 0);
+---
+
+<BaseLayout title="關於我">
+  <div class="wrap page">
+    <h1>關於我</h1>
+    <p class="lede measure">{profile.tagline}</p>
+    <p class="where">{profile.location}{profile.affiliation && `，${profile.affiliation}`}</p>
+
+    <section aria-labelledby="skills-title">
+      <h2 id="skills-title">技能</h2>
+      <dl class="skills">
+        {
+          skills.map((s) => (
+            <div>
+              <dt>{s.level}</dt>
+              <dd>{s.items.join('、')}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    {
+      profile.experience.length > 0 && (
+        <section aria-labelledby="exp-title">
+          <h2 id="exp-title">經歷</h2>
+          <ol class="timeline">
+            {profile.experience.map((e) => (
+              <li>
+                <span class="period">{e.period}</span>
+                <div>
+                  <p class="role">
+                    {e.title}，{e.org}
+                  </p>
+                  {e.summary && <p class="sum">{e.summary}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    <p class="actions">
+      {profile.resume && <a class="btn is-primary" href={profile.resume}>下載履歷 PDF</a>}
+      <a class="btn" href="/services/">聯絡我</a>
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 3rem;
+  }
+  h1 {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .lede {
+    margin-top: 1.25rem;
+    font-size: 1.2rem;
+  }
+  .where {
+    margin-top: 0.5rem;
+    color: var(--muted);
+  }
+  section {
+    margin-top: 3.5rem;
+  }
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .skills,
+  .timeline {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+  .skills div,
+  .timeline li {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 1rem;
+  }
+  dt,
+  .period {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .role {
+    font-weight: 600;
+  }
+  .sum {
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+  .actions {
+    margin-top: 3rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+</style>

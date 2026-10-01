@@ -1,0 +1,49 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { demos } from '../../components/demos';
+import { getLab } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const items = await getLab();
+  return items.map((item) => ({ params: { slug: item.id }, props: { item } }));
+}
+
+const { item } = Astro.props;
+const { Content } = await render(item);
+const Demo = demos[item.data.component as keyof typeof demos];
+if (!Demo) throw new Error(`實驗 ${item.id} 的 component「${item.data.component}」未在 src/components/demos/index.ts 註冊`);
+---
+
+<BaseLayout title={item.data.title} description={item.data.summary}>
+  <article class="wrap page">
+    <p class="crumb"><a href="/lab/">實驗室</a></p>
+    <h1>{item.data.title}</h1>
+    <p class="lede">{item.data.summary}</p>
+    <div class="demo"><Demo /></div>
+    <div class="prose"><Content /></div>
+  </article>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 3rem;
+  }
+  .crumb {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  h1 {
+    margin-top: 0.5rem;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .lede {
+    margin-top: 0.75rem;
+    font-size: 1.1rem;
+  }
+  .demo {
+    margin-block: 2.5rem 3rem;
+  }
+</style>

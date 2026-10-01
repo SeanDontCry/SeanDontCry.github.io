@@ -1,0 +1,47 @@
+---
+import { profile } from '../data/profile';
+const year = new Date().getFullYear();
+const contacts = [
+  profile.email && { href: `mailto:${profile.email}`, label: 'Email' },
+  profile.github && { href: profile.github, label: 'GitHub' },
+  profile.linkedin && { href: profile.linkedin, label: 'LinkedIn' },
+  profile.resume && { href: profile.resume, label: '履歷 PDF' },
+].filter(Boolean) as { href: string; label: string }[];
+---
+
+<footer class="site-footer">
+  <div class="wrap row">
+    <p>© {year} {profile.name} {profile.nameEn}</p>
+    {
+      contacts.length > 0 && (
+        <ul>
+          {contacts.map((c) => (
+            <li>
+              <a href={c.href}>{c.label}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--rule);
+    margin-top: 6rem;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-block: 1.75rem;
+  }
+  ul {
+    display: flex;
+    gap: 1.25rem;
+  }
+</style>

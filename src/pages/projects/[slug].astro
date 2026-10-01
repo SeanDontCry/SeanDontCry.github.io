@@ -1,0 +1,133 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DemoSlot from '../../components/DemoSlot.astro';
+import { getProjects } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, next: projects[(i + 1) % projects.length] },
+  }));
+}
+
+const { project, next } = Astro.props;
+const { Content } = await render(project);
+const { title, summary, cover, coverAlt, stack, tags, role, date, repo, status, demo } = project.data;
+const dateLabel = `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`;
+---
+
+<BaseLayout title={title} description={summary}>
+  <article class="wrap page">
+    <header class="top">
+      <p class="crumb"><a href="/projects/">作品</a></p>
+      <h1>{title}</h1>
+      <p class="lede">{summary}</p>
+    </header>
+
+    <div class="demo">
+      {
+        demo ? (
+          <DemoSlot project={project} />
+        ) : (
+          <Image src={cover} alt={coverAlt} widths={[800, 1280]} sizes="(max-width: 72rem) 100vw, 72rem" transition:name={`cover-${project.id}`} />
+        )
+      }
+    </div>
+
+    <div class="layout">
+      <dl class="facts">
+        <div><dt>時間</dt><dd>{dateLabel}{status === '進行中' && '（進行中）'}</dd></div>
+        {role && <div><dt>角色</dt><dd>{role}</dd></div>}
+        <div><dt>技術</dt><dd>{stack.join('、')}</dd></div>
+        <div><dt>類別</dt><dd>{tags.join('、')}</dd></div>
+        {repo && <div><dt>原始碼</dt><dd><a href={repo}>GitHub</a></dd></div>}
+      </dl>
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+
+    {
+      next && next.id !== project.id && (
+        <nav class="next" aria-label="下一個作品">
+          <span>下一個作品</span>
+          <a href={`/projects/${next.id}/`}>{next.data.title}</a>
+        </nav>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 3rem;
+  }
+  .crumb {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  h1 {
+    margin-top: 0.5rem;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.15;
+    max-width: 22ch;
+  }
+  .lede {
+    margin-top: 1rem;
+    font-size: 1.15rem;
+    max-width: 36rem;
+  }
+  .demo {
+    margin-top: 2.5rem;
+  }
+  .demo :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: 2rem 4rem;
+    margin-top: 3.5rem;
+  }
+  .facts {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+    font-size: 0.9rem;
+  }
+  dt {
+    color: var(--muted);
+  }
+  .prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .next {
+    margin-top: 5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    gap: 0.25rem;
+  }
+  .next span {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .next a {
+    font-size: 1.4rem;
+    font-weight: 650;
+  }
+  @media (max-width: 48rem) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

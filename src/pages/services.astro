@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { profile } from '../data/profile';
+
+const steps = [
+  { title: '需求訪談', body: '了解問題、限制與預期成果，評估是否適合。' },
+  { title: '提案與報價', body: '說明做法、時程與交付項目。' },
+  { title: '開發與定期回報', body: '依里程碑交付可運作的版本。' },
+  { title: '交付與維護', body: '提供文件與原始碼，約定後續支援方式。' },
+];
+---
+
+<BaseLayout title="接案服務" description={`${profile.name} 提供的技術服務與合作方式`}>
+  <div class="wrap page">
+    <h1>接案服務</h1>
+    <p class="lede measure">如果你有影像、裝置或網頁相關的技術問題，歡迎描述你的需求，我會盡快回覆。</p>
+
+    <section aria-labelledby="svc-title">
+      <h2 id="svc-title">服務項目</h2>
+      <dl class="services">
+        {
+          profile.services.map((s) => (
+            <div>
+              <dt>{s.title}</dt>
+              <dd>{s.body}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section aria-labelledby="flow-title">
+      <h2 id="flow-title">合作流程</h2>
+      <ol class="flow">
+        {
+          steps.map((s) => (
+            <li>
+              <strong>{s.title}</strong>
+              <span>{s.body}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby="form-title">
+      <h2 id="form-title">聯絡我</h2>
+      {
+        profile.web3formsKey ? (
+          <form class="form" action="https://api.web3forms.com/submit" method="POST">
+            <input type="hidden" name="access_key" value={profile.web3formsKey} />
+            <input type="hidden" name="subject" value="個人網站：新的合作詢問" />
+            <input type="checkbox" name="botcheck" class="sr-only" tabindex="-1" autocomplete="off" />
+            <label class="field">
+              你的稱呼
+              <input name="name" required autocomplete="name" />
+            </label>
+            <label class="field">
+              Email
+              <input name="email" type="email" required autocomplete="email" />
+            </label>
+            <label class="field">
+              需求描述
+              <textarea name="message" rows="6" required placeholder="想解決的問題、預計時程與預算範圍" />
+            </label>
+            <button class="btn is-primary" type="submit">送出詢問</button>
+          </form>
+        ) : (
+          <p class="fallback">
+            {profile.email ? (
+              <>
+                請來信 <a href={`mailto:${profile.email}`}>{profile.email}</a>，簡述想解決的問題、時程與預算範圍。
+              </>
+            ) : (
+              <>聯絡方式即將更新。</>
+            )}
+          </p>
+        )
+      }
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 3rem;
+  }
+  h1 {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .lede {
+    margin-top: 1.25rem;
+    font-size: 1.15rem;
+  }
+  section {
+    margin-top: 3.5rem;
+  }
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .services {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1.5rem 2.5rem;
+    margin-top: 1.5rem;
+  }
+  dt {
+    font-weight: 650;
+    font-size: 1.05rem;
+  }
+  dd {
+    margin-top: 0.35rem;
+    color: var(--muted);
+  }
+  .flow {
+    list-style: decimal;
+    padding-left: 1.25rem;
+    margin-top: 1.5rem;
+    display: grid;
+    gap: 0.9rem;
+  }
+  .flow li span {
+    color: var(--muted);
+    margin-left: 0.5rem;
+  }
+  .form {
+    display: grid;
+    gap: 1.1rem;
+    max-width: 32rem;
+    margin-top: 1.5rem;
+  }
+  .form .btn {
+    justify-self: start;
+  }
+  .fallback {
+    margin-top: 1.25rem;
+  }
+</style>

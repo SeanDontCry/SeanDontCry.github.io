@@ -1,0 +1,277 @@
+---
+// 排序演算法逐步視覺化：用 generator 把每次比較與交換拆成一步。
+---
+
+<div class="sorter" data-sorter>
+  <canvas data-bars role="img" aria-label="排序過程長條圖，被比較的兩個元素以強調色標示"></canvas>
+  <div class="bar">
+    <label class="field">
+      演算法
+      <select data-algo>
+        <option value="insertion">插入排序</option>
+        <option value="quick">快速排序（Lomuto）</option>
+        <option value="heap">堆積排序</option>
+        <option value="bubble">泡沫排序</option>
+      </select>
+    </label>
+    <label class="field">
+      速度
+      <input type="range" min="1" max="60" value="36" data-speed />
+    </label>
+    <div class="buttons">
+      <button type="button" class="btn is-primary" data-play>播放</button>
+      <button type="button" class="btn" data-step>單步</button>
+      <button type="button" class="btn" data-shuffle>重新洗牌</button>
+    </div>
+    <p class="stats" data-stats aria-live="polite"></p>
+  </div>
+</div>
+
+<script>
+  type Step = { a: number[]; hi: [number, number]; swapped: boolean; sortedFrom?: number };
+  type Counter = { cmp: number; swp: number };
+
+  function* insertion(a: number[], c: Counter): Generator<Step> {
+    for (let i = 1; i < a.length; i++) {
+      for (let j = i; j > 0; j--) {
+        c.cmp++;
+        if (a[j - 1] <= a[j]) {
+          yield { a, hi: [j - 1, j], swapped: false };
+          break;
+        }
+        [a[j - 1], a[j]] = [a[j], a[j - 1]];
+        c.swp++;
+        yield { a, hi: [j - 1, j], swapped: true };
+      }
+    }
+  }
+
+  function* bubble(a: number[], c: Counter): Generator<Step> {
+    for (let end = a.length - 1; end > 0; end--) {
+      let any = false;
+      for (let i = 0; i < end; i++) {
+        c.cmp++;
+        const s = a[i] > a[i + 1];
+        if (s) {
+          [a[i], a[i + 1]] = [a[i + 1], a[i]];
+          c.swp++;
+          any = true;
+        }
+        yield { a, hi: [i, i + 1], swapped: s, sortedFrom: end + 1 };
+      }
+      if (!any) return;
+    }
+  }
+
+  function* quick(a: number[], c: Counter, lo = 0, hi = a.length - 1): Generator<Step> {
+    if (lo >= hi) return;
+    const pivot = a[hi];
+    let i = lo;
+    for (let j = lo; j < hi; j++) {
+      c.cmp++;
+      const s = a[j] < pivot;
+      if (s) {
+        [a[i], a[j]] = [a[j], a[i]];
+        c.swp++;
+        i++;
+      }
+      yield { a, hi: [j, hi], swapped: s };
+    }
+    [a[i], a[hi]] = [a[hi], a[i]];
+    c.swp++;
+    yield { a, hi: [i, hi], swapped: true };
+    yield* quick(a, c, lo, i - 1);
+    yield* quick(a, c, i + 1, hi);
+  }
+
+  function* heap(a: number[], c: Counter): Generator<Step> {
+    const n = a.length;
+    function* sift(start: number, end: number): Generator<Step> {
+      let root = start;
+      while (2 * root + 1 < end) {
+        let child = 2 * root + 1;
+        if (child + 1 < end) {
+          c.cmp++;
+          if (a[child] < a[child + 1]) child++;
+        }
+        c.cmp++;
+        if (a[root] < a[child]) {
+          [a[root], a[child]] = [a[child], a[root]];
+          c.swp++;
+          yield { a, hi: [root, child], swapped: true, sortedFrom: end };
+          root = child;
+        } else {
+          yield { a, hi: [root, child], swapped: false, sortedFrom: end };
+          return;
+        }
+      }
+    }
+    for (let s = Math.floor(n / 2) - 1; s >= 0; s--) yield* sift(s, n);
+    for (let end = n - 1; end > 0; end--) {
+      [a[0], a[end]] = [a[end], a[0]];
+      c.swp++;
+      yield { a, hi: [0, end], swapped: true, sortedFrom: end };
+      yield* sift(0, end);
+    }
+  }
+
+  const ALGOS = { insertion, bubble, quick, heap };
+
+  function setup(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-bars]')!;
+    const ctx = canvas.getContext('2d')!;
+    const algoSel = root.querySelector<HTMLSelectElement>('[data-algo]')!;
+    const speed = root.querySelector<HTMLInputElement>('[data-speed]')!;
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const stepBtn = root.querySelector<HTMLButtonElement>('[data-step]')!;
+    const shuffleBtn = root.querySelector<HTMLButtonElement>('[data-shuffle]')!;
+    const stats = root.querySelector<HTMLElement>('[data-stats]')!;
+
+    const N = 48;
+    let arr: number[] = [];
+    let gen: Generator<Step> | null = null;
+    let counter: Counter = { cmp: 0, swp: 0 };
+    let last: Step | null = null;
+    let playing = false;
+    let done = false;
+    let timer = 0;
+
+    function colors() {
+      const cs = getComputedStyle(document.documentElement);
+      return {
+        bar: cs.getPropertyValue('--muted').trim() || '#5a6472',
+        hi: cs.getPropertyValue('--signal').trim() || '#2747c9',
+        done: cs.getPropertyValue('--ink').trim() || '#1c2430',
+      };
+    }
+
+    function resize() {
+      const r = canvas.getBoundingClientRect();
+      const s = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = Math.round(r.width * s);
+      canvas.height = Math.round(r.height * s);
+      render();
+    }
+
+    function render() {
+      const { bar, hi, done: doneColor } = colors();
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const bw = w / N;
+      arr.forEach((v, i) => {
+        const bh = (v / N) * (h - 8);
+        const isHi = last && !done && (i === last.hi[0] || i === last.hi[1]);
+        const isSorted = done || (last?.sortedFrom !== undefined && i >= last.sortedFrom);
+        ctx.fillStyle = isHi ? hi : isSorted ? doneColor : bar;
+        ctx.globalAlpha = isHi || isSorted ? 1 : 0.55;
+        ctx.fillRect(i * bw + 1, h - bh, Math.max(1, bw - 2), bh);
+      });
+      ctx.globalAlpha = 1;
+      stats.textContent = `比較 ${counter.cmp} 次，交換 ${counter.swp} 次${done ? '，完成' : ''}`;
+    }
+
+    function reset(shuffle = true) {
+      stop();
+      if (shuffle || arr.length === 0) {
+        arr = Array.from({ length: N }, (_, i) => i + 1);
+        for (let i = N - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
+      counter = { cmp: 0, swp: 0 };
+      const algo = ALGOS[algoSel.value as keyof typeof ALGOS];
+      gen = algo(arr, counter);
+      last = null;
+      done = false;
+      render();
+    }
+
+    function step() {
+      if (!gen || done) return;
+      const r = gen.next();
+      if (r.done) {
+        done = true;
+        stop();
+      } else last = r.value;
+      render();
+    }
+
+    function loop() {
+      const perFrame = Math.max(1, Math.round(Number(speed.value) / 10));
+      for (let i = 0; i < perFrame && !done; i++) step();
+      if (playing) timer = window.setTimeout(loop, Math.max(8, 220 - Number(speed.value) * 3.5));
+    }
+
+    function play() {
+      if (done) reset();
+      playing = true;
+      playBtn.textContent = '暫停';
+      loop();
+    }
+
+    function stop() {
+      playing = false;
+      clearTimeout(timer);
+      playBtn.textContent = done ? '再播一次' : '播放';
+    }
+
+    playBtn.addEventListener('click', () => (playing ? stop() : play()));
+    stepBtn.addEventListener('click', () => {
+      stop();
+      step();
+    });
+    shuffleBtn.addEventListener('click', () => reset(true));
+    algoSel.addEventListener('change', () => reset(true));
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+    document.addEventListener('astro:before-swap', () => {
+      ro.disconnect();
+      stop();
+    }, { once: true });
+    new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    reset(true);
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll<HTMLElement>('[data-sorter]').forEach(setup);
+  });
+</script>
+
+<style>
+  canvas {
+    display: block;
+    width: 100%;
+    height: clamp(220px, 40vw, 360px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 1rem 1.5rem;
+    margin-top: 1.25rem;
+  }
+  .bar input[type='range'] {
+    accent-color: var(--signal);
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .stats {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+</style>

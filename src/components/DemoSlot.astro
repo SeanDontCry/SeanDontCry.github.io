@@ -1,0 +1,47 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { demos } from './demos';
+import VideoEmbed from './VideoEmbed.astro';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+const { project } = Astro.props;
+const demo = project.data.demo;
+const Component = demo?.component ? demos[demo.component as keyof typeof demos] : undefined;
+if (demo?.kind === 'browser' && !Component) {
+  throw new Error(`專案 ${project.id} 的 demo.component「${demo.component}」未在 src/components/demos/index.ts 註冊`);
+}
+---
+
+{demo?.kind === 'browser' && Component && <Component />}
+{demo?.kind === 'video' && demo.youtubeId && <VideoEmbed youtubeId={demo.youtubeId} title={`${project.data.title} 示範影片`} />}
+{
+  demo?.kind === 'backend' && (
+    <div class="backend">
+      {demo.youtubeId && <VideoEmbed youtubeId={demo.youtubeId} title={`${project.data.title} 示範影片`} />}
+      {demo.url && (
+        <p>
+          <a class="btn is-primary" href={demo.url} target="_blank" rel="noopener">
+            開啟線上 Demo
+          </a>
+          <span class="note">伺服器閒置後首次開啟可能需要數秒啟動。</span>
+        </p>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .backend p {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .note {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+</style>

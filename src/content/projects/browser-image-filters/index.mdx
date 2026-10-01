@@ -1,0 +1,35 @@
+---
+title: 瀏覽器內的即時影像濾波
+summary: 不需伺服器，在瀏覽器內完成 Sobel、Laplacian、高斯模糊與 Otsu 二值化。
+cover: ./cover.png
+coverAlt: 左半為 Siemens star 測試圖原圖，右半為 Sobel 邊緣偵測結果
+tags: [影像處理, Web, 演算法]
+stack: [TypeScript, Canvas API]
+role: 個人專案
+date: 2026-10-01
+featured: true
+demo:
+  kind: browser
+  component: image-filter
+---
+
+{/* 這是範例專案：示範一個「瀏覽器端 Demo」專案頁的寫法，可以保留、改寫或刪除。 */}
+
+## 一句話
+
+用純 TypeScript 實作四種經典影像處理運算子，所有運算都在使用者的瀏覽器內完成，圖片不會離開裝置。
+
+## 怎麼做的
+
+- 圖片先轉成灰階 `Float32Array`，所有運算子共用同一種資料格式。
+- 高斯模糊拆成水平與垂直兩次 1D 卷積，運算量從 O(k²) 降到 O(2k)。
+- Otsu 法掃過 256 階直方圖，取類間變異數最大的門檻值。
+- 比較滑桿以 Canvas clip 疊合原圖與結果，拖曳時只重繪不重算。
+
+## 成果
+
+上方 Demo 會顯示目前圖片的解析度與運算時間。換成自己的照片，可以看到不同運算子對真實場景的效果。
+
+## 連結
+
+原始碼位於本網站 repo 的 `src/lib/filters.ts`。
