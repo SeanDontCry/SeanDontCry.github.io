@@ -8,9 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="/assets/css/site.css">
-<script is:inline src="/assets/js/site.js"></script>
-<script is:inline src="/assets/js/hero-filter.js" defer></script>
+<link rel="stylesheet" href="assets/css/site.css">
+<script is:inline src ="assets/js/site.js"></script>
+<script is:inline src="assets/js/hero-filter.js" defer></script>
 </head>
 <body>
 
@@ -18,8 +18,8 @@
   <div class="wrap">
     <a class="brand" href="./"><b>孫祥恩</b><span>Sean Sun</span></a>
     <nav class="nav">
-      <a href="/works/">作品</a>
-      <a href="/works/#lab">實驗室</a>
+      <a href="works/">作品</a>
+      <a href="works/#lab">實驗室</a>
       <a href="/services/">接案服務</a>
       <a href="#about">關於我</a>
       <button class="theme-btn" type="button" data-theme-toggle aria-label="切換深淺色"><i></i><span data-theme-label>深色</span></button>
@@ -39,7 +39,7 @@
         <div style="display:flex;flex-direction:column;gap:24px">
           <p class="hero-lead" data-reveal data-delay="200">專注於影像處理與嵌入式系統的軟體工程師，從演算法到裝置端都能落地。</p>
           <div class="row" data-reveal data-delay="260">
-            <a class="btn btn-solid" href="/works/">看作品 →</a>
+            <a class="btn btn-solid" href="works/">看作品 →</a>
             <a class="btn" href="/resume.pdf">下載履歷</a>
           </div>
         </div>
@@ -47,11 +47,11 @@
 
       <figure class="hero-fig" data-reveal data-delay="120">
         <div class="stage">
-          <div class="pcb p1"><img data-src="assets/img/pcb-1.jpg" alt="PCB 電路板" data-fallback="PCB 電路板照片" data-fallback-class="ph"></div>
-          <div class="pcb p2"><img data-src="assets/img/pcb-2.jpg" alt="PCB 電路板" data-fallback="PCB 電路板照片" data-fallback-class="ph"></div>
+          <div class="pcb p1"><canvas data-pcb data-photo="assets/img/pcb-1.jpg" aria-label="PCB 電路板，移動游標查看濾波效果"></canvas></div>
+          <div class="pcb p2"><canvas data-pcb data-photo="assets/img/pcb-2.jpg" aria-label="PCB 電路板，移動游標查看濾波效果"></canvas></div>
           <div class="frame">
             <div class="frame-inner">
-              <canvas data-hero-canvas width="800" height="600" data-photo="assets/img/portrait.jpg" data-photo-fallback="https://picsum.photos/id/1005/800/600?grayscale" aria-label="即時影像濾波示範，移動游標查看效果"></canvas>
+              <canvas data-hero-canvas data-ratio="3/4" width="600" height="800" data-photo="assets/img/portrait.jpg" data-photo-fallback="https://picsum.photos/id/1005/600/800?grayscale" aria-label="即時影像濾波示範，移動游標查看效果"></canvas>
               <div class="frame-tag" data-source-label>載入中…</div>
               <div class="frame-vig"></div>
             </div>
@@ -115,8 +115,8 @@
       <div class="more">
         <p>更多作品與實驗</p>
         <div>
-          <a href="/works/#project">全部作品（1） →</a>
-          <a href="/works/#lab">所有實驗 →</a>
+          <a href="works/#project">全部作品（1） →</a>
+          <a href="works/#lab">所有實驗 →</a>
         </div>
       </div>
     </div>

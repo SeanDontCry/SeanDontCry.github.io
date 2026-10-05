@@ -1,6 +1,8 @@
 // Hero：即時影像濾波（滑鼠放大鏡 / 鏡頭）
 (() => {
-  const W = 800, H = 600, P = 320, PH = 240, ACC = '#3fae6a';
+  // 長寬比只需改 index.html canvas 上的 data-ratio，例如 "4/3"、"1/1"、"3/4"、"16/9"
+  let W = 800, H = 600, P = 320, PH = 240;
+  const ACC = '#3fae6a';
   const FILTERS = {
     sobel: { code: 'SOBEL 3×3', rows: [['−1','0','+1'],['−2','0','+2'],['−1','0','+1']], note: 'Gx 卷積核；Gy 為其轉置，輸出 √(Gx² + Gy²)。' },
     laplacian: { code: 'LAPLACIAN', rows: [['0','1','0'],['1','−4','1'],['0','1','0']], note: '先高斯平滑，再取二階導數的絕對值。' },
@@ -44,6 +46,13 @@
 
   function init() {
     const canvas = document.querySelector('[data-hero-canvas]'); if (!canvas) return;
+    const [rw, rh] = (canvas.dataset.ratio || '4/3').split('/').map(Number);
+    const RA = rw > 0 && rh > 0 ? rw / rh : 4 / 3;
+    if (RA >= 1) { W = 800; H = Math.round(800 / RA); } else { H = 800; W = Math.round(800 * RA); }
+    P = Math.round(W * .4); PH = Math.round(H * .4);
+    canvas.width = W; canvas.height = H; canvas.style.aspectRatio = W + ' / ' + H;
+    const frameEl = canvas.closest('.frame');
+    if (frameEl) { const k = Math.min(1, RA / (4/3)); frameEl.style.width = (k * 100).toFixed(1) + '%'; frameEl.style.marginLeft = 'auto'; }
     const ctx = canvas.getContext('2d');
     const $ = s => document.querySelector(s);
     const tag = $('[data-source-label]'), kernel = $('[data-kernel]'), note = $('[data-filter-note]'), tOut = $('[data-otsu-t]'), tWrap = $('[data-otsu]');
@@ -69,6 +78,47 @@
       img.onerror = () => { const fb = canvas.dataset.photoFallback; if (fb && url !== fb) load(fb); };
       img.src = url;
     }
+    // PCB 小圖：同一組濾鏡，游標移入時顯示放大鏡
+    function buildSet(img, w, h, label) {
+      const c = mk(w, h), x = c.getContext('2d', { willReadFrequently: true });
+      if (img) { const s = Math.max(w/img.width, h/img.height), iw = img.width*s, ih = img.height*s; x.drawImage(img, (w-iw)/2, (h-ih)/2, iw, ih); }
+      else { x.fillStyle = '#e4ddcc'; x.fillRect(0, 0, w, h); x.strokeStyle = '#b8ae98'; x.lineWidth = 1;
+        for (let k = -h; k < w; k += 14) { x.beginPath(); x.moveTo(k, h); x.lineTo(k + h, 0); x.stroke(); }
+        x.fillStyle = '#6b604c'; x.font = '500 ' + Math.round(h*.07) + 'px "IBM Plex Mono", monospace'; x.textAlign = 'center'; x.fillText(label, w/2, h/2); }
+      const g = toGray(x.getImageData(0, 0, w, h).data, w*h), f = {};
+      for (const id in FILTERS) { const r = run(id, g, w, h), fc = mk(w, h); paint(fc, r.out, w, h); f[id] = fc; }
+      return { src: c, filt: f };
+    }
+    const pcbs = [...document.querySelectorAll('[data-pcb]')].map(c => {
+      const o = { c, ctx: c.getContext('2d'), set: null, img: undefined, ptr: null, lens: { x: 0, y: 0 }, a: 0, dirty: true, key: '' };
+      const rebuild = () => {
+        if (o.img === undefined) return;
+        const dpr = Math.min(2, devicePixelRatio || 1), w = Math.max(40, Math.round(c.clientWidth * dpr)), h = Math.max(30, Math.round(c.clientHeight * dpr));
+        if (w + 'x' + h === o.key && o.set) return; o.key = w + 'x' + h;
+        c.width = w; c.height = h; o.lens = { x: w/2, y: h/2 };
+        try { o.set = buildSet(o.img, w, h, 'PCB 電路板照片'); } catch (e) { o.set = buildSet(null, w, h, 'PCB 電路板照片'); }
+        o.dirty = true;
+      };
+      const img = new Image(); img.onload = () => { o.img = img; rebuild(); }; img.onerror = () => { o.img = null; rebuild(); }; img.src = c.dataset.photo;
+      if ('ResizeObserver' in window) { let to; new ResizeObserver(() => { clearTimeout(to); to = setTimeout(rebuild, 120); }).observe(c); }
+      else addEventListener('resize', rebuild);
+      c.addEventListener('pointermove', e => { o.ptr = { x: e.offsetX / c.clientWidth * c.width, y: e.offsetY / c.clientHeight * c.height }; });
+      c.addEventListener('pointerleave', () => { o.ptr = null; });
+      return o;
+    });
+    function drawPcb(o) {
+      if (!o.set) return;
+      const target = o.ptr ? 1 : 0; o.a += (target - o.a) * .15;
+      if (!o.dirty && o.a < .002 && !o.ptr) return;
+      o.dirty = false;
+      const { c, ctx } = o, w = c.width, h = c.height;
+      if (o.ptr) { o.lens.x += (o.ptr.x - o.lens.x) * .2; o.lens.y += (o.ptr.y - o.lens.y) * .2; }
+      ctx.drawImage(o.set.src, 0, 0);
+      const R = h * .26 * o.a; if (R < 1) return;
+      ctx.save(); ctx.beginPath(); ctx.arc(o.lens.x, o.lens.y, R, 0, Math.PI*2); ctx.clip(); ctx.drawImage(o.set.filt[filter], 0, 0); ctx.restore();
+      ctx.lineWidth = Math.max(1.5, h/200); ctx.strokeStyle = ACC; ctx.beginPath(); ctx.arc(o.lens.x, o.lens.y, R, 0, Math.PI*2); ctx.stroke();
+    }
+
     const label = () => { tag.textContent = stream ? 'LIVE · 鏡頭' : loaded ? '形象照 · 移動游標' : '載入中…'; };
 
     function setFilter(id) {
@@ -78,15 +128,17 @@
       kernel.hidden = !f.rows.length;
       f.rows.flat().forEach(v => { const s = document.createElement('span'); s.textContent = v; kernel.appendChild(s); });
       note.textContent = f.note; tWrap.hidden = id !== 'otsu';
+      if (typeof pcbs !== 'undefined') pcbs.forEach(o => { o.dirty = true; });
     }
 
     function frame(t) {
       requestAnimationFrame(frame);
+      pcbs.forEach(drawPcb);
       if (!src) return;
       let A = src, B = filt[filter], th = staticT;
       if (stream && video && video.readyState >= 2 && video.videoWidth) {
         const px = proc.getContext('2d', { willReadFrequently: true });
-        const sc = Math.min(video.videoWidth/4, video.videoHeight/3), sw = sc*4, sh = sc*3;
+        const sc = Math.min(video.videoWidth/W, video.videoHeight/H), sw = sc*W, sh = sc*H;
         px.save(); px.translate(P, 0); px.scale(-1, 1); px.drawImage(video, (video.videoWidth-sw)/2, (video.videoHeight-sh)/2, sw, sh, 0, 0, P, PH); px.restore();
         const r = run(filter, toGray(px.getImageData(0, 0, P, PH).data, P*PH), P, PH);
         paint(camB, r.out, P, PH); A = proc; B = camB; if (r.t != null) th = r.t;
