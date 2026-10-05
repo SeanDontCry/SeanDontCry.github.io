@@ -7,19 +7,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="../assets/css/site.css">
-<script src="../assets/js/site.js"></script>
+<link rel="stylesheet" href="/assets/css/site.css">
+<script is:inline src="/assets/js/site.js"></script>
 </head>
 <body>
 
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="../"><b>孫祥恩</b><span>Sean Sun</span></a>
+    <a class="brand" href="/"><b>孫祥恩</b><span>Sean Sun</span></a>
     <nav class="nav">
       <a href="./" aria-current="page">作品</a>
       <a href="#lab" data-nav-lab>實驗室</a>
       <a href="/services/">接案服務</a>
-      <a href="../#about">關於我</a>
+      <a href="/#about">關於我</a>
       <button class="theme-btn" type="button" data-theme-toggle aria-label="切換深淺色"><i></i><span data-theme-label>深色</span></button>
     </nav>
   </div>
@@ -83,7 +83,7 @@
     </footer>
   </div>
 </section>
-<script>
+<script is:inline >
 document.querySelector('[data-nav-lab]').addEventListener('click', e => { e.preventDefault(); document.querySelector('[data-filter="lab"]').click(); });
 </script>
 </body>
