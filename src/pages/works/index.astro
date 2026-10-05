@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>作品與實驗 — 孫祥恩 Sean Sun</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script src="../assets/js/site.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="../"><b>孫祥恩</b><span>Sean Sun</span></a>
+    <nav class="nav">
+      <a href="./" aria-current="page">作品</a>
+      <a href="#lab" data-nav-lab>實驗室</a>
+      <a href="/services/">接案服務</a>
+      <a href="../#about">關於我</a>
+      <button class="theme-btn" type="button" data-theme-toggle aria-label="切換深淺色"><i></i><span data-theme-label>深色</span></button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="index" data-tone="a">
+    <div class="works-head">
+      <div>
+        <div class="eyebrow" data-reveal>INDEX</div>
+        <h1 data-reveal data-delay="80">作品與實驗</h1>
+      </div>
+      <div class="row" style="gap:8px" data-reveal data-delay="160">
+        <button class="pill" type="button" data-filter="all" aria-pressed="true">全部（2）</button>
+        <button class="pill" type="button" data-filter="project" aria-pressed="false">作品（1）</button>
+        <button class="pill" type="button" data-filter="lab" aria-pressed="false">實驗（1）</button>
+      </div>
+    </div>
+    <div class="list">
+      <a href="/projects/browser-image-filters/" data-kind="project" data-reveal>
+        <span class="num">01</span>
+        <div class="body">
+          <div class="meta" style="justify-content:flex-start;gap:16px"><span>作品</span><span>2026 · TypeScript、Canvas API</span></div>
+          <h2>瀏覽器內的即時影像濾波</h2>
+          <p>不需伺服器，在瀏覽器內完成 Sobel、Laplacian、高斯模糊與 Otsu 二值化。</p>
+        </div>
+        <div class="cover"><img src="https://seandontcry.github.io/_astro/cover.Dpq6XaZc_hkJxe.webp" alt="左半為 Siemens star 測試圖原圖，右半為 Sobel 邊緣偵測結果" loading="lazy" data-fallback="實驗截圖"></div>
+      </a>
+      <a href="/lab/sorting-visualizer/" data-kind="lab" data-reveal>
+        <span class="num">02</span>
+        <div class="body">
+          <div class="meta" style="justify-content:flex-start;gap:16px"><span>實驗</span><span>實驗室</span></div>
+          <h2>排序演算法逐步播放</h2>
+          <p>把每一次比較與交換拆開，看四種排序演算法如何移動資料。</p>
+        </div>
+        <div class="cover"><div class="empty">實驗截圖</div></div>
+      </a>
+    </div>
+  </section>
+</main>
+
+<section class="contact" id="contact" data-tone="ink">
+  <div class="wrap">
+    <div class="lead">
+      <div class="eyebrow" data-reveal>CONTACT</div>
+      <h2 data-reveal data-delay="80">一起合作</h2>
+      <p data-reveal data-delay="160">正在尋找影像處理與電腦視覺、網頁與 LINE LIFF 應用相關的工作與專案合作。</p>
+      <div class="row" data-reveal data-delay="240" style="margin-top:8px">
+        <a class="btn btn-solid" href="/services/">聯絡我</a>
+        <a class="btn" href="/resume.pdf">下載履歷</a>
+      </div>
+    </div>
+    <footer class="site-footer">
+      <span>© 2026 孫祥恩 Sean Sun</span>
+      <div>
+        <a href="mailto:r08548034@g.ntu.edu.tw">Email</a>
+        <a href="https://github.com/SeanDontCry">GitHub</a>
+        <a href="https://www.linkedin.com/in/seansun-b04502020-r08548034">LinkedIn</a>
+        <a href="/resume.pdf">履歷 PDF</a>
+      </div>
+    </footer>
+  </div>
+</section>
+<script>
+document.querySelector('[data-nav-lab]').addEventListener('click', e => { e.preventDefault(); document.querySelector('[data-filter="lab"]').click(); });
+</script>
+</body>
+</html>

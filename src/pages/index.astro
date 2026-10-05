@@ -1,97 +1,169 @@
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/Hero.astro';
-import ProjectRow from '../components/ProjectRow.astro';
-import { getProjects, getLab } from '../lib/content';
-import { profile } from '../data/profile';
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>孫祥恩 Sean Sun — 影像處理與嵌入式系統</title>
+<meta name="description" content="專注於影像處理與嵌入式系統的軟體工程師，從演算法到裝置端都能落地。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script is:inline src="/assets/js/site.js"></script>
+<script is:inline src="/assets/js/hero-filter.js" defer></script>
+</head>
+<body>
 
-const projects = await getProjects();
-const featured = projects.filter((p) => p.data.featured).slice(0, 4);
-const shown = featured.length > 0 ? featured : projects.slice(0, 3);
-const lab = (await getLab()).slice(0, 3);
----
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="./"><b>孫祥恩</b><span>Sean Sun</span></a>
+    <nav class="nav">
+      <a href="/works/">作品</a>
+      <a href="/works/#lab">實驗室</a>
+      <a href="/services/">接案服務</a>
+      <a href="#about">關於我</a>
+      <button class="theme-btn" type="button" data-theme-toggle aria-label="切換深淺色"><i></i><span data-theme-label>深色</span></button>
+    </nav>
+  </div>
+</header>
 
-<BaseLayout>
-  <Hero />
-
-  <section class="wrap section" aria-labelledby="featured-title">
-    <div class="head">
-      <h2 id="featured-title">精選作品</h2>
-      <a href="/projects/">全部作品（{projects.length}）</a>
-    </div>
-    {shown.map((p) => <ProjectRow project={p} />)}
-  </section>
-
-  {
-    lab.length > 0 && (
-      <section class="wrap section" aria-labelledby="lab-title">
-        <div class="head">
-          <h2 id="lab-title">實驗室</h2>
-          <a href="/lab/">所有實驗</a>
+<main>
+  <section class="hero" data-tone="a">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <div class="eyebrow hero-eyebrow" data-reveal>IMAGE PROCESSING · EMBEDDED</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <h1 data-reveal data-delay="80">孫祥恩</h1>
+          <div class="hero-sub" data-reveal data-delay="140">Sean Sun</div>
         </div>
-        <ul class="lab">
-          {lab.map((l) => (
-            <li>
-              <a href={`/lab/${l.id}/`}>{l.data.title}</a>
-              <p>{l.data.summary}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )
-  }
+        <div style="display:flex;flex-direction:column;gap:24px">
+          <p class="hero-lead" data-reveal data-delay="200">專注於影像處理與嵌入式系統的軟體工程師，從演算法到裝置端都能落地。</p>
+          <div class="row" data-reveal data-delay="260">
+            <a class="btn btn-solid" href="/works/">看作品 →</a>
+            <a class="btn" href="/resume.pdf">下載履歷</a>
+          </div>
+        </div>
+      </div>
 
-  <section class="wrap section contact" aria-labelledby="contact-title">
-    <h2 id="contact-title">一起合作</h2>
-    <p class="measure">正在尋找{profile.services.map((s) => s.title).join('、')}相關的工作與專案合作。</p>
-    <p class="actions">
-      <a class="btn is-primary" href="/services/">聯絡我</a>
-      {profile.resume && <a class="btn" href={profile.resume}>下載履歷</a>}
-    </p>
+      <figure class="hero-fig" data-reveal data-delay="120">
+        <div class="stage">
+          <div class="pcb p1"><img data-src="assets/img/pcb-1.jpg" alt="PCB 電路板" data-fallback="PCB 電路板照片" data-fallback-class="ph"></div>
+          <div class="pcb p2"><img data-src="assets/img/pcb-2.jpg" alt="PCB 電路板" data-fallback="PCB 電路板照片" data-fallback-class="ph"></div>
+          <div class="frame">
+            <div class="frame-inner">
+              <canvas data-hero-canvas width="800" height="600" data-photo="assets/img/portrait.jpg" data-photo-fallback="https://picsum.photos/id/1005/800/600?grayscale" aria-label="即時影像濾波示範，移動游標查看效果"></canvas>
+              <div class="frame-tag" data-source-label>載入中…</div>
+              <div class="frame-vig"></div>
+            </div>
+            <div class="frame-stamp"><span>SEAN SUN</span><span>2026</span></div>
+          </div>
+        </div>
+        <div class="controls">
+          <div>
+            <button class="pill" type="button" data-filter-btn="sobel" aria-pressed="true">Sobel 邊緣</button>
+            <button class="pill" type="button" data-filter-btn="laplacian" aria-pressed="false">Laplacian</button>
+            <button class="pill" type="button" data-filter-btn="gauss" aria-pressed="false">高斯模糊</button>
+            <button class="pill" type="button" data-filter-btn="otsu" aria-pressed="false">Otsu 二值化</button>
+          </div>
+          <div>
+            <label class="chip">更換影像<input type="file" accept="image/*" data-file hidden></label>
+            <button class="chip" type="button" data-cam><span class="dot"></span><span data-cam-label>改用鏡頭</span></button>
+          </div>
+        </div>
+        <figcaption class="cap">
+          <div class="kernel" data-kernel></div>
+          <div class="mono" style="font-size:14px" data-otsu hidden>t* = <span data-otsu-t>—</span></div>
+          <div class="note" data-filter-note></div>
+        </figcaption>
+        <div class="note" data-cam-error hidden>無法開啟鏡頭，已改用靜態影像。</div>
+      </figure>
+    </div>
   </section>
-</BaseLayout>
 
-<style>
-  .section {
-    margin-top: 6rem;
-  }
-  .head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  h2 {
-    font-size: 1.75rem;
-    font-weight: 700;
-  }
-  .head a {
-    font-size: 0.95rem;
-    color: var(--muted);
-  }
-  .lab {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-    gap: 1.5rem 2.5rem;
-    border-top: 1px solid var(--rule);
-    padding-top: 1.5rem;
-  }
-  .lab a {
-    font-weight: 650;
-    font-size: 1.1rem;
-  }
-  .lab p {
-    margin-top: 0.3rem;
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-  .contact p {
-    margin-top: 0.75rem;
-  }
-  .actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-</style>
+  <section class="works" data-tone="b">
+    <div class="wrap-wide works-head">
+      <div>
+        <div class="eyebrow" data-reveal>01 — SELECTED WORK</div>
+        <h2 class="h2" data-reveal data-delay="80">精選作品</h2>
+      </div>
+      <div class="ctrl" data-reveal data-delay="160">
+        <span data-counter>01 / 03</span>
+        <span class="bar"><i></i></span>
+        <div style="display:flex;gap:8px">
+          <button class="circle" type="button" data-prev aria-label="上一個">←</button>
+          <button class="circle" type="button" data-next aria-label="下一個">→</button>
+        </div>
+      </div>
+    </div>
+    <div class="track">
+      <a class="card" href="/projects/browser-image-filters/">
+        <div class="cover"><img src="https://seandontcry.github.io/_astro/cover.Dpq6XaZc_hkJxe.webp" alt="左半為 Siemens star 測試圖原圖，右半為 Sobel 邊緣偵測結果" loading="lazy" data-fallback="實驗截圖"></div>
+        <div class="card-body">
+          <div class="meta"><span>作品</span><span>2026 · TypeScript、Canvas API</span></div>
+          <h3>瀏覽器內的即時影像濾波</h3>
+          <p>不需伺服器，在瀏覽器內完成 Sobel、Laplacian、高斯模糊與 Otsu 二值化。</p>
+        </div>
+      </a>
+      <a class="card" href="/lab/sorting-visualizer/">
+        <div class="cover"><div class="empty">實驗截圖</div></div>
+        <div class="card-body">
+          <div class="meta"><span>實驗</span><span>實驗室</span></div>
+          <h3>排序演算法逐步播放</h3>
+          <p>把每一次比較與交換拆開，看四種排序演算法如何移動資料。</p>
+        </div>
+      </a>
+      <div class="more">
+        <p>更多作品與實驗</p>
+        <div>
+          <a href="/works/#project">全部作品（1） →</a>
+          <a href="/works/#lab">所有實驗 →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="about" data-tone="c">
+    <div>
+      <div class="eyebrow" data-reveal>02 — ABOUT</div>
+      <h2 class="h2" data-reveal data-delay="80">經歷與技能</h2>
+      <div class="skills" data-reveal data-delay="160">
+        <span>影像處理</span><span>電腦視覺</span><span>嵌入式系統</span><span>網頁應用</span><span>LINE LIFF</span><span>TypeScript</span><span>Canvas API</span>
+      </div>
+    </div>
+    <div class="tl">
+      <span class="tl-fill"></span>
+      <ol>
+        <li data-reveal><span class="yr">2026</span><div><b>瀏覽器內的即時影像濾波</b><small>個人作品</small><small class="muted">TypeScript、Canvas API</small></div></li>
+        <li data-reveal><span class="yr">2026</span><div><b>排序演算法逐步播放</b><small>實驗室</small><small class="muted">四種排序演算法的逐步視覺化</small></div></li>
+        <li data-reveal><span class="yr">［年份］</span><div><b>［職稱］</b><small>［公司］</small><small class="muted">［影像處理／嵌入式相關工作內容］</small></div></li>
+        <li data-reveal><span class="yr">［年份］</span><div><b>碩士</b><small>國立臺灣大學</small><small class="muted">［研究主題］</small></div></li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<section class="contact" id="contact" data-tone="ink">
+  <div class="wrap">
+    <div class="lead">
+      <div class="eyebrow" data-reveal>03 — CONTACT</div>
+      <h2 data-reveal data-delay="80">一起合作</h2>
+      <p data-reveal data-delay="160">正在尋找影像處理與電腦視覺、網頁與 LINE LIFF 應用相關的工作與專案合作。</p>
+      <div class="row" data-reveal data-delay="240" style="margin-top:8px">
+        <a class="btn btn-solid" href="/services/">聯絡我</a>
+        <a class="btn" href="/resume.pdf">下載履歷</a>
+      </div>
+    </div>
+    <footer class="site-footer">
+      <span>© 2026 孫祥恩 Sean Sun</span>
+      <div>
+        <a href="mailto:r08548034@g.ntu.edu.tw">Email</a>
+        <a href="https://github.com/SeanDontCry">GitHub</a>
+        <a href="https://www.linkedin.com/in/seansun-b04502020-r08548034">LinkedIn</a>
+        <a href="/resume.pdf">履歷 PDF</a>
+      </div>
+    </footer>
+  </div>
+</section>
+
+</body>
+</html>
