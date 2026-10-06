@@ -102,24 +102,30 @@
       const img = new Image(); img.onload = () => { o.img = img; rebuild(); }; img.onerror = () => { o.img = null; rebuild(); }; img.src = c.dataset.photo;
       if ('ResizeObserver' in window) { let to; new ResizeObserver(() => { clearTimeout(to); to = setTimeout(rebuild, 120); }).observe(c); }
       else addEventListener('resize', rebuild);
-      c.addEventListener('pointermove', e => { o.ptr = { x: e.offsetX / c.clientWidth * c.width, y: e.offsetY / c.clientHeight * c.height }; });
-      c.addEventListener('pointerleave', () => { o.ptr = null; });
       return o;
     });
-    function drawPcb(o) {
+    // 共用放大鏡：以 .stage 為座標系，換算到每張（旋轉過的）canvas 內
+    const stage = canvas.closest('.stage') || canvas.parentElement;
+    const lensTag = document.createElement('div');
+    lensTag.setAttribute('aria-hidden', 'true');
+    lensTag.style.cssText = 'position:absolute;left:0;top:0;z-index:5;pointer-events:none;white-space:nowrap;padding:3px 7px;background:' + ACC + ';color:#0f1a13;font:500 11px/14px "IBM Plex Mono",monospace;letter-spacing:.04em;will-change:transform';
+    stage.appendChild(lensTag);
+    function toLocal(c, g, Rs, st) {
+      const r = c.getBoundingClientRect(), cx = r.left + r.width/2 - st.left, cy = r.top + r.height/2 - st.top;
+      const m = getComputedStyle(c.closest('.frame, .pcb') || c).transform;
+      let a = 0; if (m && m !== 'none') { const v = m.match(/-?[\d.e]+/g).map(Number); a = Math.atan2(v[1], v[0]); }
+      const dx = g.x - cx, dy = g.y - cy, cs = Math.cos(a), sn = Math.sin(a), k = c.width / (c.clientWidth || 1);
+      return { x: (cs*dx + sn*dy + c.clientWidth/2) * k, y: (-sn*dx + cs*dy + c.clientHeight/2) * k, R: Rs * k };
+    }
+    function drawPcb(o, L) {
       if (!o.set) return;
-      const target = o.ptr ? 1 : 0; o.a += (target - o.a) * .15;
-      if (!o.dirty && o.a < .002 && !o.ptr) return;
-      o.dirty = false;
-      const { c, ctx } = o, w = c.width, h = c.height;
-      if (o.ptr) { o.lens.x += (o.ptr.x - o.lens.x) * .2; o.lens.y += (o.ptr.y - o.lens.y) * .2; }
+      const { ctx } = o, h = o.c.height;
       ctx.drawImage(o.set.src, 0, 0);
-      const R = h * .26 * o.a; if (R < 1) return;
-      ctx.save(); ctx.beginPath(); ctx.arc(o.lens.x, o.lens.y, R, 0, Math.PI*2); ctx.clip(); ctx.drawImage(o.set.filt[filter], 0, 0); ctx.restore();
-      ctx.lineWidth = Math.max(1.5, h/200); ctx.strokeStyle = ACC; ctx.beginPath(); ctx.arc(o.lens.x, o.lens.y, R, 0, Math.PI*2); ctx.stroke();
+      ctx.save(); ctx.beginPath(); ctx.arc(L.x, L.y, L.R, 0, Math.PI*2); ctx.clip(); ctx.drawImage(o.set.filt[filter], 0, 0); ctx.restore();
+      ctx.lineWidth = Math.max(1.5, h/200); ctx.strokeStyle = ACC; ctx.beginPath(); ctx.arc(L.x, L.y, L.R, 0, Math.PI*2); ctx.stroke();
     }
 
-    const label = () => { tag.textContent = stream ? 'LIVE · 鏡頭' : loaded ? '形象照 · 移動游標' : '載入中…'; };
+    const label = () => { tag.textContent = stream ? 'LIVE' : loaded ? '移動游標' : '載入中…'; };
 
     function setFilter(id) {
       filter = id; const f = FILTERS[id];
@@ -133,7 +139,15 @@
 
     function frame(t) {
       requestAnimationFrame(frame);
-      pcbs.forEach(drawPcb);
+      const st = stage.getBoundingClientRect(), mr = canvas.getBoundingClientRect();
+      const mcx = mr.left + mr.width/2 - st.left, mcy = mr.top + mr.height/2 - st.top;
+      const tgx = ptr ? ptr.x : mcx + Math.cos(t*.00042) * canvas.clientWidth*.22, tgy = ptr ? ptr.y : mcy + Math.sin(t*.00063) * canvas.clientHeight*.2;
+      if (!lens.init) lens = { x: tgx, y: tgy, init: true };
+      lens.x += (tgx - lens.x) * .12; lens.y += (tgy - lens.y) * .12;
+      const Rs = canvas.clientHeight * .17;
+      pcbs.forEach(o => drawPcb(o, toLocal(o.c, lens, Rs, st)));
+      const code = FILTERS[filter].code; if (lensTag.textContent !== code) lensTag.textContent = code;
+      lensTag.style.transform = `translate(${(lens.x - lensTag.offsetWidth/2).toFixed(1)}px, ${(lens.y + Rs + 8).toFixed(1)}px)`;
       if (!src) return;
       let A = src, B = filt[filter], th = staticT;
       if (stream && video && video.readyState >= 2 && video.videoWidth) {
@@ -144,15 +158,10 @@
         paint(camB, r.out, P, PH); A = proc; B = camB; if (r.t != null) th = r.t;
       }
       if (filter === 'otsu') tOut.textContent = th;
-      const tx = ptr ? ptr.x : W/2 + Math.cos(t*.00042) * W*.22, ty = ptr ? ptr.y : H/2 + Math.sin(t*.00063) * H*.2;
-      lens.x += (tx - lens.x) * .12; lens.y += (ty - lens.y) * .12;
-      const { x, y } = lens, R = H * .17;
+      const ML = toLocal(canvas, lens, Rs, st), x = ML.x, y = ML.y, R = ML.R;
       ctx.drawImage(A, 0, 0, W, H);
       ctx.save(); ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI*2); ctx.clip(); ctx.drawImage(B, 0, 0, W, H); ctx.restore();
       ctx.lineWidth = 2; ctx.strokeStyle = ACC; ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI*2); ctx.stroke();
-      const code = FILTERS[filter].code; ctx.font = '500 11px "IBM Plex Mono", monospace';
-      const lw = ctx.measureText(code).width + 14, lx = Math.min(W-lw-6, Math.max(6, x-lw/2)), ly = Math.min(H-26, y+R+8);
-      ctx.fillStyle = ACC; ctx.fillRect(lx, ly, lw, 20); ctx.fillStyle = '#0f1a13'; ctx.fillText(code, lx+7, ly+14);
     }
 
     async function startCam() {
@@ -169,8 +178,8 @@
     document.querySelectorAll('[data-filter-btn]').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.filterBtn)));
     camBtn.addEventListener('click', () => stream ? stopCam() : startCam());
     file.addEventListener('change', e => { const f = e.target.files?.[0]; if (f) load(URL.createObjectURL(f)); });
-    canvas.addEventListener('pointermove', e => { ptr = { x: e.offsetX / canvas.clientWidth * W, y: e.offsetY / canvas.clientHeight * H }; });
-    canvas.addEventListener('pointerleave', () => { ptr = null; });
+    stage.addEventListener('pointermove', e => { const s = stage.getBoundingClientRect(); ptr = { x: e.clientX - s.left, y: e.clientY - s.top }; });
+    stage.addEventListener('pointerleave', () => { ptr = null; });
     addEventListener('pagehide', stopCam);
 
     build(null); setFilter('sobel'); label();
