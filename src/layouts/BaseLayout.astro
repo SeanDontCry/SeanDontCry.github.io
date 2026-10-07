@@ -1,17 +1,20 @@
 ---
-import { ClientRouter } from 'astro:transitions';
+// 全站共用外框：<head>、導覽列、頁尾。所有頁面都應該包在這個 Layout 裡。
 import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import ContactSection from '../components/ContactSection.astro';
 import { profile } from '../data/profile';
-import '../styles/global.css';
+import siteScript from '../scripts/site.js?raw';
+import '../styles/site.css';
 
 interface Props {
   title?: string;
   description?: string;
+  /** 頁尾是否顯示「歡迎一起合作」區塊（接案頁本身可關掉） */
+  contactLead?: boolean;
 }
 
-const { title, description = profile.tagline } = Astro.props;
-const fullTitle = title ? `${title}｜${profile.name} ${profile.nameEn}` : `${profile.name} ${profile.nameEn}`;
+const { title, description = profile.description, contactLead = true } = Astro.props;
+const fullTitle = title ? `${title} — ${profile.name} ${profile.nameEn}` : profile.nameEn;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -33,28 +36,16 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap"
     />
-    <script is:inline>
-      (function () {
-        const apply = () => {
-          let t = null;
-          try { t = localStorage.getItem('theme'); } catch (e) {}
-          if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          document.documentElement.dataset.theme = t;
-        };
-        apply();
-        document.addEventListener('astro:after-swap', apply);
-      })();
-    </script>
-    <ClientRouter />
+    <script is:inline set:html={siteScript} />
   </head>
   <body>
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 btn is-primary">跳到主要內容</a>
+    <a href="#main" class="skip-link">跳到主要內容</a>
     <Header />
     <main id="main">
       <slot />
     </main>
-    <Footer />
+    <ContactSection lead={contactLead} />
   </body>
 </html>

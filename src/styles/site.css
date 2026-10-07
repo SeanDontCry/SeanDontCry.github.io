@@ -1,9 +1,16 @@
+/* ─────────────────────────────────────────────────────────────
+   全站樣式
+   色彩由 src/scripts/site.js 依深淺色與區塊（data-tone）動態設定，
+   這裡的 :root 數值只是 JS 尚未執行時的預設值。
+   ───────────────────────────────────────────────────────────── */
 :root{
   --bg:oklch(0.968 0.004 250);--fg:oklch(0.21 0.012 255);--muted:oklch(0.47 0.012 255);
   --line:oklch(0.86 0.006 255);--card:oklch(0.995 0.002 250);
   --accent:#3fae6a;--accent-text:oklch(0.48 0.12 150);
   --serif:'Noto Serif TC',serif;--sans:'Noto Sans TC',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace;
   --pad:clamp(20px,5vw,48px);--ease:cubic-bezier(.2,.7,.2,1);
+  /* 互動 Demo 元件使用的別名，對應到上面的主色彩 */
+  --ink:var(--fg);--rule:var(--line);--surface:var(--card);--signal:var(--accent);--signal-ink:#fff;--font-mono:var(--mono);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -48,8 +55,9 @@ button{font:inherit;color:inherit}
 .hero-text{flex:1 1 200px;min-width:0;max-width:400px;display:flex;flex-direction:column;justify-content:space-between;gap:32px}
 .hero-eyebrow{display:flex;align-items:center;gap:12px}
 .hero-eyebrow::before{content:"";width:28px;height:1px;background:var(--accent)}
-.hero h1{position:relative;z-index:1;margin:0;font-family:var(--serif);font-weight:900;font-size:clamp(40px,5vw,80px);line-height:1.05;letter-spacing:-.01em;white-space:nowrap;color:#fff;mix-blend-mode:difference;pointer-events:none}
-.hero-sub{z-index:1;font-size:clamp(15px,2vw,30px);line-height:.95;letter-spacing:.08em;white-space:nowrap;color:var(--accent);}
+.hero h1{position:relative;z-index:1;margin:0;font-family:var(--serif);font-weight:900;font-size:clamp(30px,4vw,60px);line-height:1.25;letter-spacing:-.01em;white-space:nowrap;pointer-events:none} 
+/* color:#fff;mix-blend-mode:difference; */
+.hero-sub{z-index:1;font-weight:900;font-size:clamp(10px,1.5vw,20px);line-height:1.05;letter-spacing:.08em;white-space:nowrap;color:var(--accent);}
 .hero-lead{margin:0;max-width:22em;font-size:clamp(17px,1.5vw,19px);line-height:1.8;text-wrap:pretty}
 .row{display:flex;flex-wrap:wrap;gap:12px}
 .hero-fig{flex:3 1 300px;min-width:0;margin:0;display:flex;flex-direction:column;gap:16px}
@@ -75,6 +83,17 @@ button{font:inherit;color:inherit}
 .kernel{display:grid;gap:4px;font-family:var(--mono)}
 .kernel span{height:24px;width:30px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);font-size:11px}
 .note{font-size:13px;color:var(--muted);max-width:26em}
+.hero{position:relative;isolation:isolate}
+.hero-bg{
+  position:absolute;z-index:-1;top:0;bottom:0;
+  left:50%;width:100vw;transform:translateX(-50%);   /* 突破 .hero 的最大寬度，滿版 */
+  overflow:hidden;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 55%,transparent);
+          mask-image:linear-gradient(to bottom,#000 55%,transparent);
+}
+.hero-bg img{width:100%;height:100%;object-fit:cover;opacity:.85}
+[data-theme="dark"] .hero-bg img{opacity:.7;filter:brightness(.7)}
+html{overflow-x:clip}   /* 避免 100vw 含捲軸寬度而產生橫向捲動 */
 
 /* carousel */
 .works{padding:clamp(96px,12vw,160px) 0;display:flex;flex-direction:column;gap:clamp(32px,4vw,48px)}
@@ -143,3 +162,75 @@ button{font:inherit;color:inherit}
 .js [data-reveal]{opacity:0;transform:translateY(28px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
 .js [data-reveal].in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.js [data-reveal]{opacity:1;transform:none;transition:none}}
+
+/* ─── 原本寫在 HTML style 屬性裡的排版 ─── */
+.hero-titles{display:flex;flex-direction:column;gap:12px}
+.hero-actions{display:flex;flex-direction:column;gap:24px}
+.otsu{font-size:14px}
+.meta-start{justify-content:flex-start;gap:16px}
+.tabs{gap:8px}
+.ctrl-btns{display:flex;gap:8px}
+.contact .row{margin-top:8px}
+
+/* ─── 共用小元件 ─── */
+.skip-link{position:absolute;left:-9999px;top:12px;z-index:50;padding:8px 14px;background:var(--fg);color:var(--bg);border-radius:999px}
+.skip-link:focus{left:12px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.link{text-decoration:underline;text-underline-offset:.2em;text-decoration-color:var(--line)}
+button.btn{background:none;cursor:pointer;font:inherit;color:inherit}
+.btn.is-primary,.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.field{display:grid;gap:6px;font-size:14px}
+.field input,.field textarea,.field select{font:inherit;font-size:15px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--fg)}
+[hidden]{display:none!important}
+
+/* ─── 內頁（專案、實驗、接案、404） ─── */
+.page{max-width:1240px;margin:0 auto;padding:clamp(64px,9vw,128px) var(--pad) clamp(80px,10vw,140px);display:flex;flex-direction:column;gap:clamp(40px,5vw,64px)}
+.page-head{display:flex;flex-direction:column;gap:20px;max-width:900px}
+.page-head h1{margin:0;font-family:var(--serif);font-weight:900;font-size:clamp(40px,6vw,88px);line-height:1.08}
+.page-lead{margin:0;font-size:clamp(17px,1.6vw,20px);line-height:1.8;max-width:34em;text-wrap:pretty}
+.back:hover{color:var(--accent-text)}
+.page-demo img{width:100%;height:auto;display:block;border:1px solid var(--line)}
+.page-body{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:clamp(32px,6vw,96px)}
+.facts{margin:0;display:flex;flex-direction:column;gap:18px}
+.facts dt{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted)}
+.facts dd{margin:4px 0 0;font-size:15px}
+.next{border-top:1px solid var(--line);padding-top:28px;display:flex;flex-direction:column;gap:10px}
+.next a{font-family:var(--serif);font-weight:700;font-size:clamp(24px,3vw,40px)}
+.page-section{display:flex;flex-direction:column;gap:28px}
+.section-title{margin:0;font-family:var(--serif);font-weight:700;font-size:clamp(28px,3.4vw,44px);padding-bottom:16px;border-bottom:1px solid var(--line)}
+.service-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.service{background:var(--card);border:1px solid var(--line);padding:24px;display:flex;flex-direction:column;gap:10px}
+.service h3{margin:0;font-family:var(--serif);font-size:24px;line-height:1.3}
+.service p{margin:0;color:var(--muted)}
+.num{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.flow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.flow li{display:grid;grid-template-columns:56px minmax(0,1fr);gap:16px;padding:20px 0;border-bottom:1px solid var(--line)}
+.flow b{font-size:18px}
+.flow p{margin:4px 0 0;color:var(--muted)}
+.form{display:grid;gap:18px;max-width:560px}
+.form .btn{justify-self:start}
+
+/* MDX 內文 */
+.prose{max-width:40em;font-size:17px;line-height:1.85}
+.prose>*{margin:0}
+.prose>*+*{margin-top:1.1em}
+.prose h2{font-family:var(--serif);font-weight:700;font-size:clamp(24px,2.4vw,32px);line-height:1.35;margin-top:2em}
+.prose h2:first-child{margin-top:0}
+.prose h3{font-size:20px;margin-top:1.6em}
+.prose a{text-decoration:underline;text-underline-offset:.2em}
+.prose ul{list-style:disc;padding-left:1.25em}
+.prose ol{list-style:decimal;padding-left:1.25em}
+.prose li+li{margin-top:.35em}
+.prose code{font-family:var(--mono);font-size:.88em;padding:.1em .35em;border:1px solid var(--line);background:var(--card)}
+.prose pre{padding:16px 20px;overflow-x:auto;font-size:14px;line-height:1.6}
+.prose pre code{padding:0;border:0;background:none}
+.prose img{max-width:100%;height:auto}
+.prose table{width:100%;border-collapse:collapse;font-size:15px}
+.prose th,.prose td{text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--line)}
+
+@media (max-width:760px){
+  .page-body{grid-template-columns:1fr}
+  .facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+}

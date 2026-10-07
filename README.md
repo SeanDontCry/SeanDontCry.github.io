@@ -19,7 +19,7 @@ npx astro check    # 型別檢查
 ## 部署前必改
 
 1. `astro.config.mjs`：把 `site` 改成你的網域。
-2. `src/data/profile.ts`：填寫標記 `TODO` 的欄位（Email、GitHub、技能、經歷）。
+2. `src/data/profile.ts`：確認個人資料、首頁文案、經歷與服務項目。
 3. 履歷：把 PDF 放到 `public/resume.pdf`，再把 `profile.resume` 改成 `'/resume.pdf'`。
 4. 聯絡表單：到 [Web3Forms](https://web3forms.com) 用信箱免費申請 access key，填入 `profile.web3formsKey`。留空時，接案頁會改顯示 Email。
 5. 範例內容：`src/content/projects/browser-image-filters/` 與 `src/content/lab/sorting-visualizer.mdx` 是可運作的範例，可保留、改寫或刪除。
@@ -66,20 +66,38 @@ Cloudflare 後台的選單名稱偶爾會調整，若找不到對應項目，以
 
 需要伺服器的 Demo（例如 Python 推論服務）部署在 Railway，專案設 `demo.kind: backend` 並填 `url`；建議同時填 `youtubeId` 作為服務暫停時的備援影片。後端記得開放本網域的 CORS。
 
+## 要改什麼，改哪裡
+
+| 想改的東西 | 檔案 |
+| --- | --- |
+| 首頁標題、副標、經歷、技能、頁尾文案、聯絡方式、服務項目 | `src/data/profile.ts` |
+| 導覽列項目、「專案／實驗」標籤文字 | `src/data/site.ts` |
+| 新增或修改專案、實驗 | `src/content/projects/`、`src/content/lab/` |
+| 首頁照片 | `src/assets/img/`（檔名不變直接替換即可） |
+| 所有視覺樣式 | `src/styles/site.css` |
+| 深淺色與各區塊配色 | `src/scripts/site.js` 開頭的 `PAL` |
+| 首頁濾波互動 | `src/scripts/hero-filter.js` |
+
+原則：頁面檔（`src/pages/`）只負責排版，不寫死任何文字資料；樣式只寫在 `site.css` 或元件自己的 `<style>`，不使用 HTML 的 `style` 屬性。
+
 ## 目錄
 
 ```
 src/
-├── components/         版型元件（Hero、ProjectRow、DemoSlot…）
+├── assets/img/         首頁照片（建置時自動加上雜湊檔名與快取）
+├── components/         Header、Hero、WorkCard、WorkRow、AboutSection、ContactSection…
 │   └── demos/          互動 Demo 與註冊表
 ├── content/
 │   ├── projects/       每個專案一個資料夾
 │   └── lab/            每個實驗一個 .mdx
 ├── content.config.ts   內容欄位定義（schema）
-├── data/profile.ts     個人資料
-├── layouts/            頁面外框
-├── lib/                影像運算、測試圖、內容查詢
-├── pages/              路由
-└── styles/global.css   色彩與字體 token、內文樣式
+├── data/
+│   ├── profile.ts      個人資料與全站文案
+│   └── site.ts         導覽列與共用標籤
+├── layouts/BaseLayout.astro   全站外框
+├── lib/                內容查詢（works.ts 合併專案與實驗）、影像運算
+├── pages/              路由：首頁、/works、/projects/[slug]、/lab/[slug]、/services
+├── scripts/            site.js（主題、捲動效果、輪播、分類）、hero-filter.js
+└── styles/site.css     全站樣式
 docs/project-template.mdx   新專案模板
 ```

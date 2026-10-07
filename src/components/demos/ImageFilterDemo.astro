@@ -4,7 +4,7 @@
 ---
 
 <div class="demo" data-filter-demo>
-  <div class="stage">
+  <div class="fd-stage">
     <canvas data-view role="img" aria-label="左側為原圖、右側為處理結果，拖曳分隔線可比較"></canvas>
     <span class="tag left">原圖</span>
     <span class="tag right">處理後</span>
@@ -184,9 +184,8 @@
     loadChart();
   }
 
-  document.addEventListener('astro:page-load', () => {
-    document.querySelectorAll<HTMLElement>('[data-filter-demo]').forEach(setup);
-  });
+  // 頁面載入時初始化頁面上所有同類 Demo
+  document.querySelectorAll<HTMLElement>('[data-filter-demo]').forEach(setup);
 </script>
 
 <style>
@@ -196,7 +195,7 @@
     gap: 1.5rem;
     align-items: start;
   }
-  .stage {
+  .fd-stage {
     position: relative;
   }
   canvas {

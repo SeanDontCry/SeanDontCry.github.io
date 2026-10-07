@@ -1,120 +1,24 @@
 ---
 import { profile } from '../data/profile';
+import { nav } from '../data/site';
 
-const links = [
-  { href: '/projects/', label: '作品' },
-  { href: '/lab/', label: '實驗室' },
-  { href: '/services/', label: '接案服務' },
-  { href: '/about/', label: '關於我' },
-];
 const path = Astro.url.pathname;
-const isActive = (href: string) => path.startsWith(href);
 ---
 
 <header class="site-header">
-  <div class="wrap bar">
-    <a href="/" class="brand">{profile.name}<span class="en">{profile.nameEn}</span></a>
-    <nav aria-label="主要導覽">
-      <ul>
-        {
-          links.map((l) => (
-            <li>
-              <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined}>
-                {l.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
+  <div class="wrap">
+    <a class="brand" href="/"><b>{profile.brand.short}</b><span>{profile.brand.role}</span></a>
+    <nav class="nav" aria-label="主要導覽">
+      {
+        nav.map((item) => (
+          <a href={item.href} aria-current={item.match && path.startsWith(item.match) ? 'page' : undefined}>
+            {item.label}
+          </a>
+        ))
+      }
+      <button class="theme-btn" type="button" data-theme-toggle aria-label="切換深淺色">
+        <i></i><span data-theme-label>深色</span>
+      </button>
     </nav>
-    <button class="theme" type="button" aria-label="切換深淺色主題" data-theme-toggle>
-      <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-        <circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
-        <path d="M10 2.5 A7.5 7.5 0 0 1 10 17.5 Z" fill="currentColor"></path>
-      </svg>
-    </button>
   </div>
 </header>
-
-<script>
-  function bind() {
-    const btn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
-    if (!btn || btn.dataset.bound) return;
-    btn.dataset.bound = '1';
-    btn.addEventListener('click', () => {
-      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      try {
-        localStorage.setItem('theme', next);
-      } catch {}
-    });
-  }
-  document.addEventListener('astro:page-load', bind);
-</script>
-
-<style>
-  .site-header {
-    border-bottom: 1px solid var(--rule);
-  }
-  .bar {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    min-height: 4rem;
-    flex-wrap: wrap;
-  }
-  .brand {
-    font-weight: 700;
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    margin-right: auto;
-  }
-  .en {
-    margin-left: 0.5rem;
-    font-weight: 500;
-    color: var(--muted);
-  }
-  ul {
-    display: flex;
-    gap: 1.25rem;
-    font-size: 0.95rem;
-  }
-  nav a {
-    text-decoration: none;
-    color: var(--muted);
-    padding-block: 0.25rem;
-    border-bottom: 2px solid transparent;
-  }
-  nav a:hover {
-    color: var(--ink);
-  }
-  nav a[aria-current='page'] {
-    color: var(--ink);
-    border-bottom-color: var(--signal);
-  }
-  .theme {
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 999px;
-    color: var(--ink);
-    cursor: pointer;
-  }
-  .theme:hover {
-    background: var(--surface);
-  }
-  @media (max-width: 40rem) {
-    .bar {
-      gap: 0.5rem 1rem;
-      padding-block: 0.75rem;
-    }
-    nav {
-      order: 3;
-      width: 100%;
-    }
-    .en {
-      display: none;
-    }
-  }
-</style>

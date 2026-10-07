@@ -40,13 +40,17 @@ const projects = defineCollection({
 
 const lab = defineCollection({
   loader: glob({ pattern: '*.{md,mdx}', base: './src/content/lab' }),
-  schema: z.object({
-    title: z.string(),
-    summary: z.string().max(80),
-    date: z.coerce.date(),
-    component: z.string(),
-    draft: z.boolean().default(false),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      summary: z.string().max(80),
+      date: z.coerce.date(),
+      component: z.string(),
+      cover: image().optional(), // 選填：卡片封面，沒有時顯示佔位圖
+      coverAlt: z.string().optional(),
+      featured: z.boolean().default(true), // 是否出現在首頁輪播
+      draft: z.boolean().default(false),
+    }),
 });
 
 export const collections = { projects, lab };

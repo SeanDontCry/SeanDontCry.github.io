@@ -16,34 +16,13 @@ if (!Demo) throw new Error(`實驗 ${item.id} 的 component「${item.data.compon
 ---
 
 <BaseLayout title={item.data.title} description={item.data.summary}>
-  <article class="wrap page">
-    <p class="crumb"><a href="/lab/">實驗室</a></p>
-    <h1>{item.data.title}</h1>
-    <p class="lede">{item.data.summary}</p>
-    <div class="demo"><Demo /></div>
+  <article class="page" data-tone="a">
+    <header class="page-head">
+      <a class="eyebrow back" href="/works/#lab" data-reveal>← LAB</a>
+      <h1 data-reveal data-delay="80">{item.data.title}</h1>
+      <p class="page-lead" data-reveal data-delay="160">{item.data.summary}</p>
+    </header>
+    <div class="page-demo"><Demo /></div>
     <div class="prose"><Content /></div>
   </article>
 </BaseLayout>
-
-<style>
-  .page {
-    padding-top: 3rem;
-  }
-  .crumb {
-    font-size: 0.9rem;
-    color: var(--muted);
-  }
-  h1 {
-    margin-top: 0.5rem;
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
-    line-height: 1.15;
-  }
-  .lede {
-    margin-top: 0.75rem;
-    font-size: 1.1rem;
-  }
-  .demo {
-    margin-block: 2.5rem 3rem;
-  }
-</style>

@@ -1,0 +1,37 @@
+---
+import { profile } from '../data/profile';
+
+interface Props {
+  lead?: boolean;
+}
+const { lead = true } = Astro.props;
+const year = new Date().getFullYear();
+const links = [
+  profile.email && { href: `mailto:${profile.email}`, label: 'Email' },
+  profile.github && { href: profile.github, label: 'GitHub' },
+  profile.linkedin && { href: profile.linkedin, label: 'LinkedIn' },
+  profile.resume && { href: profile.resume, label: '履歷 PDF' },
+].filter(Boolean) as { href: string; label: string }[];
+---
+
+<section class="contact" id="contact" data-tone="ink">
+  <div class="wrap">
+    {
+      lead && (
+        <div class="lead">
+          <div class="eyebrow" data-reveal>CONTACT</div>
+          <h2 data-reveal data-delay="80">{profile.contact.title}</h2>
+          <p data-reveal data-delay="160">{profile.contact.body}</p>
+          <div class="row" data-reveal data-delay="240">
+            <a class="btn btn-solid" href="/services/">聯絡我</a>
+            {profile.resume && <a class="btn" href={profile.resume}>下載履歷</a>}
+          </div>
+        </div>
+      )
+    }
+    <footer class="site-footer">
+      <span>© {year} {profile.name} {profile.nameEn}</span>
+      <div>{links.map((l) => <a href={l.href}>{l.label}</a>)}</div>
+    </footer>
+  </div>
+</section>

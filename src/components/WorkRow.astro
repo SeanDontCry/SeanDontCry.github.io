@@ -1,0 +1,30 @@
+---
+// 作品頁清單的一列
+import { Image } from 'astro:assets';
+import type { WorkItem } from '../lib/works';
+import { kindLabel } from '../data/site';
+
+interface Props {
+  item: WorkItem;
+  index: number;
+}
+const { item, index } = Astro.props;
+---
+
+<a href={item.href} data-kind={item.kind} data-reveal>
+  <span class="num">{String(index + 1).padStart(2, '0')}</span>
+  <div class="body">
+    <div class="meta meta-start"><span>{kindLabel[item.kind]}</span><span>{item.meta}</span></div>
+    <h2>{item.title}</h2>
+    <p>{item.summary}</p>
+  </div>
+  <div class="cover">
+    {
+      item.cover ? (
+        <Image src={item.cover} alt={item.coverAlt ?? ''} widths={[340, 680]} sizes="340px" />
+      ) : (
+        <div class="empty">實驗截圖</div>
+      )
+    }
+  </div>
+</a>

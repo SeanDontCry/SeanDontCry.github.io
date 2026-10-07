@@ -4,7 +4,7 @@
 
 <div class="sorter" data-sorter>
   <canvas data-bars role="img" aria-label="排序過程長條圖，被比較的兩個元素以強調色標示"></canvas>
-  <div class="bar">
+  <div class="sv-controls">
     <label class="field">
       演算法
       <select data-algo>
@@ -229,18 +229,13 @@
 
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
-    document.addEventListener('astro:before-swap', () => {
-      ro.disconnect();
-      stop();
-    }, { once: true });
     new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
     reset(true);
   }
 
-  document.addEventListener('astro:page-load', () => {
-    document.querySelectorAll<HTMLElement>('[data-sorter]').forEach(setup);
-  });
+  // 頁面載入時初始化頁面上所有同類 Demo
+  document.querySelectorAll<HTMLElement>('[data-sorter]').forEach(setup);
 </script>
 
 <style>
@@ -250,14 +245,14 @@
     height: clamp(220px, 40vw, 360px);
     border-bottom: 1px solid var(--rule);
   }
-  .bar {
+  .sv-controls {
     display: flex;
     flex-wrap: wrap;
     align-items: end;
     gap: 1rem 1.5rem;
     margin-top: 1.25rem;
   }
-  .bar input[type='range'] {
+  .sv-controls input[type='range'] {
     accent-color: var(--signal);
     padding: 0;
     border: 0;

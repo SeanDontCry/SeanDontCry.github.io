@@ -3,28 +3,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="找不到頁面">
-  <div class="wrap page">
-    <h1>找不到這個頁面</h1>
-    <p class="measure">網址可能打錯了，或作品已經搬家。可以從作品列表重新找找。</p>
-    <p class="actions">
-      <a class="btn is-primary" href="/projects/">查看所有作品</a>
-      <a class="btn" href="/">回到首頁</a>
-    </p>
+  <div class="page" data-tone="a">
+    <header class="page-head">
+      <div class="eyebrow">404</div>
+      <h1>找不到這個頁面</h1>
+      <p class="page-lead">網址可能打錯了，或作品已經搬家。可以從作品列表重新找找。</p>
+      <div class="row">
+        <a class="btn btn-solid" href="/works/">查看所有作品</a>
+        <a class="btn" href="/">回到首頁</a>
+      </div>
+    </header>
   </div>
 </BaseLayout>
-
-<style>
-  .page {
-    padding-top: 5rem;
-  }
-  h1 {
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
-    margin-bottom: 1rem;
-  }
-  .actions {
-    margin-top: 2rem;
-    display: flex;
-    gap: 0.75rem;
-  }
-</style>

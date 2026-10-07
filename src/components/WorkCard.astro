@@ -1,0 +1,28 @@
+---
+// 首頁輪播的卡片
+import { Image } from 'astro:assets';
+import type { WorkItem } from '../lib/works';
+import { kindLabel } from '../data/site';
+
+interface Props {
+  item: WorkItem;
+}
+const { item } = Astro.props;
+---
+
+<a class="card" href={item.href}>
+  <div class="cover">
+    {
+      item.cover ? (
+        <Image src={item.cover} alt={item.coverAlt ?? ''} widths={[560, 1120]} sizes="(max-width: 700px) 80vw, 560px" />
+      ) : (
+        <div class="empty">實驗截圖</div>
+      )
+    }
+  </div>
+  <div class="card-body">
+    <div class="meta"><span>{kindLabel[item.kind]}</span><span>{item.meta}</span></div>
+    <h3>{item.title}</h3>
+    <p>{item.summary}</p>
+  </div>
+</a>

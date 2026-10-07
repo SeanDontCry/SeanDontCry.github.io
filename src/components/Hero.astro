@@ -1,352 +1,91 @@
 ---
+// 首頁主視覺：文字來自 src/data/profile.ts，照片放在 src/assets/img/。
+// 互動邏輯在 src/scripts/hero-filter.js。
 import { profile } from '../data/profile';
+import { Image } from 'astro:assets';
+import wallpaper from '../assets/img/wallpaper.jpg';
+import portrait from '../assets/img/portrait.jpg';
+import pcb1 from '../assets/img/pcb-1.jpg';
+import pcb2 from '../assets/img/pcb-2.jpg';
 
-const ops = [
+const { hero } = profile;
+const filters = [
   { id: 'sobel', label: 'Sobel 邊緣' },
   { id: 'laplacian', label: 'Laplacian' },
-  { id: 'gaussian', label: '高斯模糊' },
+  { id: 'gauss', label: '高斯模糊' },
   { id: 'otsu', label: 'Otsu 二值化' },
 ];
 ---
 
-<section class="hero wrap" aria-labelledby="hero-title">
-  <div class="viewfinder">
-    <canvas
-      data-hero-canvas
-      tabindex="0"
-      role="img"
-      aria-label="影像測試圖。移動游標、觸控拖曳或使用方向鍵，透鏡範圍內會即時套用所選的影像處理運算子。"
-    ></canvas>
-    <span class="corner tl" aria-hidden="true"></span>
-    <span class="corner tr" aria-hidden="true"></span>
-    <span class="corner bl" aria-hidden="true"></span>
-    <span class="corner br" aria-hidden="true"></span>
+<section class="hero" data-tone="a">
+  <div class="hero-bg" aria-hidden="true">
+    <Image src={wallpaper} alt="" widths={[960, 1600, 2400]} sizes="100vw"
+           loading="eager" fetchpriority="high" />
   </div>
-
-  <div class="meta">
-    <div>
-      <h1 id="hero-title">{profile.name}<span>{profile.nameEn}</span></h1>
-      <p class="lede">{profile.tagline}</p>
-    </div>
-    <div class="controls">
-      <div class="ops" role="group" aria-label="透鏡運算子">
-        {
-          ops.map((op, i) => (
-            <button type="button" class="btn" data-op={op.id} aria-pressed={i === 0 ? 'true' : 'false'}>
-              {op.label}
-            </button>
-          ))
-        }
+  <div class="hero-grid">
+    <div class="hero-text">
+      <div class="eyebrow hero-eyebrow" data-reveal>{hero.eyebrow}</div>
+      <div class="hero-titles">
+        <h1 data-reveal data-delay="80">
+          {hero.title.map((line, i) => <>{i > 0 && <br />}{line}</>)}
+        </h1>
+        <div class="hero-sub" data-reveal data-delay="140">
+          {hero.subtitle.map((line) => <><br />{line}</>)}
+        </div>
       </div>
-      <pre class="kernel" data-kernel aria-live="polite"></pre>
+      <div class="hero-actions">
+        <p class="hero-lead" data-reveal data-delay="200">{hero.lead}</p>
+        <div class="row" data-reveal data-delay="260">
+          <a class="btn btn-solid" href="/works/">專案展示 →</a>
+          {profile.resume && <a class="btn" href={profile.resume}>下載履歷</a>}
+        </div>
+      </div>
     </div>
+
+    <figure class="hero-fig" data-reveal data-delay="120">
+      <div class="stage">
+        <div class="pcb p1"><canvas data-pcb data-photo={pcb1.src} aria-label="PCB 電路板，移動游標查看濾波效果"></canvas></div>
+        <div class="pcb p2"><canvas data-pcb data-photo={pcb2.src} aria-label="PCB 電路板，移動游標查看濾波效果"></canvas></div>
+        <div class="frame">
+          <div class="frame-inner">
+            <canvas
+              data-hero-canvas
+              data-ratio="3/4"
+              width="600"
+              height="800"
+              data-photo={portrait.src}
+              aria-label="即時影像濾波示範，移動游標查看效果"></canvas>
+            <div class="frame-tag" data-source-label>載入中…</div>
+            <div class="frame-vig"></div>
+          </div>
+          <div class="frame-stamp">{hero.stamp.map((s) => <span>{s}</span>)}</div>
+        </div>
+      </div>
+      <div class="controls">
+        <div>
+          {
+            filters.map((f, i) => (
+              <button class="pill" type="button" data-filter-btn={f.id} aria-pressed={i === 0 ? 'true' : 'false'}>
+                {f.label}
+              </button>
+            ))
+          }
+        </div>
+        <div>
+          <label class="chip">更換影像<input type="file" accept="image/*" data-file hidden /></label>
+          <button class="chip" type="button" data-cam><span class="dot"></span><span data-cam-label>改用鏡頭</span></button>
+        </div>
+      </div>
+      <figcaption class="cap">
+        <div class="kernel" data-kernel></div>
+        <div class="mono otsu" data-otsu hidden>t* = <span data-otsu-t>—</span></div>
+        <div class="note" data-filter-note></div>
+      </figcaption>
+      <div class="note" data-cam-error hidden>無法開啟鏡頭，已改用靜態影像。</div>
+    </figure>
   </div>
 </section>
 
 <script>
-  import { drawTestChart } from '../lib/chart';
-  import {
-    toGray,
-    toCanvas,
-    sobel,
-    laplacian,
-    gaussianBlur,
-    gaussianKernel,
-    otsu,
-    threshold,
-    formatMatrix,
-    SOBEL_X,
-    LAPLACIAN,
-    type Gray,
-  } from '../lib/filters';
-
-  type Op = 'sobel' | 'laplacian' | 'gaussian' | 'otsu';
-  const SIGMA = 3;
-
-  function describe(op: Op, extra: { t?: number }) {
-    switch (op) {
-      case 'sobel':
-        return `Sobel  |G| = √(Gx² + Gy²)\nGx =\n${formatMatrix(SOBEL_X)}`;
-      case 'laplacian':
-        return `Laplacian  ∇²I\n${formatMatrix(LAPLACIAN)}`;
-      case 'gaussian': {
-        const k = gaussianKernel(SIGMA);
-        const mid = (k.length - 1) / 2;
-        const head = Array.from(k.slice(mid, mid + 4)).map((v) => v.toFixed(3));
-        return `Gaussian  σ = ${SIGMA}\n可分離 1D kernel，${k.length} taps\nw(0..3) = ${head.join('  ')}`;
-      }
-      case 'otsu':
-        return `Otsu threshold\n最大化類間變異數\nT = ${extra.t ?? '–'}`;
-    }
-  }
-
-  function init() {
-    const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
-    if (!canvas || canvas.dataset.ready) return;
-    canvas.dataset.ready = '1';
-    const ctx = canvas.getContext('2d')!;
-    const kernelEl = document.querySelector<HTMLElement>('[data-kernel]')!;
-    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-op]'));
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    let op: Op = 'sobel';
-    let base: HTMLCanvasElement | null = null;
-    let gray: Gray | null = null;
-    let cache = new Map<Op, HTMLCanvasElement>();
-    let otsuT: number | undefined;
-    let anchors = { star: { x: 0, y: 0 }, edge: { x: 0, y: 0 }, plate: { x: 0, y: 0 } };
-    let lens = { x: 0, y: 0 };
-    let radius = 100;
-    let scale = 1;
-    let touched = false;
-    let raf = 0;
-
-    function filtered(which: Op): HTMLCanvasElement {
-      const hit = cache.get(which);
-      if (hit) return hit;
-      let out: Gray;
-      if (which === 'sobel') out = sobel(gray!);
-      else if (which === 'laplacian') out = laplacian(gray!);
-      else if (which === 'gaussian') out = gaussianBlur(gray!, SIGMA * scale);
-      else {
-        otsuT = otsu(gray!);
-        out = threshold(gray!, otsuT);
-      }
-      const c = toCanvas(out);
-      cache.set(which, c);
-      return c;
-    }
-
-    function layout() {
-      const rect = canvas!.getBoundingClientRect();
-      if (rect.width === 0) return;
-      scale = Math.min(window.devicePixelRatio || 1, 1.5);
-      const w = Math.round(rect.width * scale);
-      const h = Math.round(rect.height * scale);
-      canvas!.width = w;
-      canvas!.height = h;
-      base = document.createElement('canvas');
-      base.width = w;
-      base.height = h;
-      const bctx = base.getContext('2d', { willReadFrequently: true })!;
-      anchors = drawTestChart(bctx, w, h);
-      gray = toGray(bctx.getImageData(0, 0, w, h));
-      cache = new Map();
-      radius = Math.max(60, Math.min(150, Math.min(w, h) * 0.22));
-      if (!touched) lens = { ...anchors.star };
-      else lens = { x: Math.min(lens.x, w), y: Math.min(lens.y, h) };
-      filtered(op);
-      kernelEl.textContent = describe(op, { t: otsuT });
-      draw();
-    }
-
-    function draw() {
-      if (!base) return;
-      const c = ctx;
-      c.drawImage(base, 0, 0);
-      c.save();
-      c.beginPath();
-      c.arc(lens.x, lens.y, radius, 0, Math.PI * 2);
-      c.clip();
-      c.drawImage(filtered(op), 0, 0);
-      c.restore();
-      c.lineWidth = 3 * scale;
-      c.strokeStyle = 'rgba(16, 22, 32, 0.55)';
-      c.beginPath();
-      c.arc(lens.x, lens.y, radius, 0, Math.PI * 2);
-      c.stroke();
-      c.lineWidth = 1.25 * scale;
-      c.strokeStyle = '#ffffff';
-      c.stroke();
-      const t = 7 * scale;
-      c.beginPath();
-      c.moveTo(lens.x - t, lens.y);
-      c.lineTo(lens.x + t, lens.y);
-      c.moveTo(lens.x, lens.y - t);
-      c.lineTo(lens.x, lens.y + t);
-      c.stroke();
-    }
-
-    function schedule() {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(draw);
-    }
-
-    function moveTo(clientX: number, clientY: number) {
-      const rect = canvas!.getBoundingClientRect();
-      lens = { x: (clientX - rect.left) * scale, y: (clientY - rect.top) * scale };
-      schedule();
-    }
-
-    canvas.addEventListener('pointermove', (e) => {
-      if (e.pointerType === 'touch' && e.buttons === 0) return;
-      touched = true;
-      moveTo(e.clientX, e.clientY);
-    });
-    canvas.addEventListener('pointerdown', (e) => {
-      touched = true;
-      moveTo(e.clientX, e.clientY);
-    });
-    canvas.style.touchAction = 'pan-y';
-    canvas.addEventListener('keydown', (e) => {
-      const step = 24 * scale;
-      const d: Record<string, [number, number]> = {
-        ArrowLeft: [-step, 0],
-        ArrowRight: [step, 0],
-        ArrowUp: [0, -step],
-        ArrowDown: [0, step],
-      };
-      const v = d[e.key];
-      if (!v) return;
-      e.preventDefault();
-      touched = true;
-      lens = {
-        x: Math.max(0, Math.min(canvas.width, lens.x + v[0])),
-        y: Math.max(0, Math.min(canvas.height, lens.y + v[1])),
-      };
-      schedule();
-    });
-
-    buttons.forEach((b) =>
-      b.addEventListener('click', () => {
-        op = b.dataset.op as Op;
-        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-        filtered(op);
-        kernelEl.textContent = describe(op, { t: otsuT });
-        schedule();
-      }),
-    );
-
-    // 開場：透鏡從 Siemens star 滑到斜邊，只播一次
-    function intro() {
-      if (reduced) return;
-      const from = { ...anchors.star };
-      const to = { ...anchors.edge };
-      const start = performance.now();
-      const dur = 2200;
-      const tick = (now: number) => {
-        if (touched) return;
-        const p = Math.min(1, (now - start) / dur);
-        const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-        lens = {
-          x: from.x + (to.x - from.x) * e,
-          y: from.y + (to.y - from.y) * e - Math.sin(Math.PI * e) * radius * 0.6,
-        };
-        draw();
-        if (p < 1) requestAnimationFrame(tick);
-      };
-      setTimeout(() => requestAnimationFrame(tick), 500);
-    }
-
-    let resizeTimer = 0;
-    const ro = new ResizeObserver(() => {
-      clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(layout, 120);
-    });
-    ro.observe(canvas);
-    document.addEventListener('astro:before-swap', () => ro.disconnect(), { once: true });
-
-    layout();
-    intro();
-  }
-
-  document.addEventListener('astro:page-load', init);
+  import '../scripts/hero-filter.js';
 </script>
-
-<style>
-  .hero {
-    padding-top: 2.5rem;
-  }
-  .viewfinder {
-    position: relative;
-    padding: 10px;
-  }
-  canvas {
-    display: block;
-    width: 100%;
-    height: clamp(320px, 58vh, 560px);
-    border-radius: 4px;
-    cursor: crosshair;
-    background: #9aa0a7;
-  }
-  .corner {
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    border-color: var(--ink);
-    border-style: solid;
-    border-width: 0;
-  }
-  .tl {
-    top: 0;
-    left: 0;
-    border-top-width: 2px;
-    border-left-width: 2px;
-  }
-  .tr {
-    top: 0;
-    right: 0;
-    border-top-width: 2px;
-    border-right-width: 2px;
-  }
-  .bl {
-    bottom: 0;
-    left: 0;
-    border-bottom-width: 2px;
-    border-left-width: 2px;
-  }
-  .br {
-    bottom: 0;
-    right: 0;
-    border-bottom-width: 2px;
-    border-right-width: 2px;
-  }
-  .meta {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-    gap: 2rem 3rem;
-    margin-top: 2rem;
-    align-items: start;
-  }
-  h1 {
-    font-size: clamp(2.4rem, 6vw, 4.2rem);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-  }
-  h1 span {
-    display: block;
-    font-weight: 500;
-    color: var(--muted);
-    font-size: 0.5em;
-    letter-spacing: 0;
-    margin-top: 0.4rem;
-  }
-  .lede {
-    margin-top: 1.25rem;
-    font-size: 1.15rem;
-    max-width: 30rem;
-  }
-  .ops {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .kernel {
-    margin-top: 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    line-height: 1.6;
-    color: var(--muted);
-    min-height: 7.5em;
-    white-space: pre;
-  }
-  @media (max-width: 48rem) {
-    .meta {
-      grid-template-columns: 1fr;
-    }
-    canvas {
-      height: clamp(300px, 70vw, 420px);
-    }
-  }
-</style>

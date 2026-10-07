@@ -1,4 +1,5 @@
-// 共用：深淺色、分段背景色、捲動淡入、作品輪播、經歷時間軸
+// 共用：深淺色、分段背景色、捲動淡入、作品輪播、經歷時間軸、作品頁分類
+// 這支檔案在 <head> 內同步執行，讓配色在畫面出現前就套用（避免閃爍）。
 (() => {
   const L = (l, c, h) => `oklch(${l} ${c} ${h})`;
   const PAL = {
@@ -28,6 +29,7 @@
     s.setProperty('--line', line); s.setProperty('--card', card);
     s.setProperty('--accent-text', dark ? L(.78,.14,150) : L(.48,.12,150));
     s.colorScheme = dark ? 'dark' : 'light';
+    root.dataset.theme = theme; // 供互動 Demo 偵測主題切換
     const lbl = document.querySelector('[data-theme-label]');
     if (lbl) lbl.textContent = theme === 'light' ? '深色' : '淺色';
   }
@@ -86,7 +88,8 @@
       document.querySelectorAll('.list a').forEach(a => { a.hidden = f !== 'all' && a.dataset.kind !== f; });
     };
     tabs.forEach(b => b.addEventListener('click', () => { setFilter(b.dataset.filter); history.replaceState(null, '', b.dataset.filter === 'all' ? location.pathname : '#' + b.dataset.filter); }));
-    if (tabs.length) setFilter(['project', 'lab'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'all');
+    const fromHash = () => setFilter(['project', 'lab'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'all');
+    if (tabs.length) { fromHash(); addEventListener('hashchange', fromHash); }
 
     // 圖片缺檔時顯示佔位
     document.querySelectorAll('img[data-fallback]').forEach(img => {
