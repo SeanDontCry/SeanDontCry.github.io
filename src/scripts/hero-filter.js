@@ -125,7 +125,7 @@
       ctx.lineWidth = Math.max(1.5, h/200); ctx.strokeStyle = ACC; ctx.beginPath(); ctx.arc(L.x, L.y, L.R, 0, Math.PI*2); ctx.stroke();
     }
 
-    const label = () => { tag.textContent = stream ? 'LIVE' : loaded ? '移動游標' : '載入中…'; };
+    const label = () => { tag.textContent = stream ? 'LIVE' : loaded ? (matchMedia('(hover: none)').matches ? '拖曳查看' : '移動游標') : '載入中…'; };
 
     function setFilter(id) {
       filter = id; const f = FILTERS[id];

@@ -41,6 +41,18 @@
       theme = theme === 'light' ? 'dark' : 'light'; localStorage.setItem(KEY, theme); apply();
     });
 
+    // 手機與平板：往下捲動時收起導覽列，往上捲動時再出現，減少畫面遮擋
+    const header = document.querySelector('.site-header');
+    if (header) {
+      let lastY = scrollY;
+      addEventListener('scroll', () => {
+        const y = scrollY;
+        if (Math.abs(y - lastY) < 8) return;
+        header.classList.toggle('is-hidden', y > lastY && y > 120 && innerWidth <= 900);
+        lastY = y;
+      }, { passive: true });
+    }
+
     // 捲動淡入
     const els = document.querySelectorAll('[data-reveal]');
     els.forEach(el => { if (el.dataset.delay) el.style.transitionDelay = el.dataset.delay + 'ms'; });

@@ -234,3 +234,96 @@ button.btn{background:none;cursor:pointer;font:inherit;color:inherit}
   .page-body{grid-template-columns:1fr}
   .facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* ─────────────────────────────────────────────────────────────
+   響應式與可讀性微調
+   放在檔案最後，覆寫前面的規則。斷點：900px（平板）、640px（手機）
+   ───────────────────────────────────────────────────────────── */
+
+/* 錨點跳轉（例如 /#about）時，標題不會被固定的導覽列蓋住 */
+html{scroll-padding-top:80px}
+
+/* 導覽列：手機往下捲動時收起（由 site.js 加上 .is-hidden） */
+.site-header{transition:transform .35s var(--ease),background-color .9s ease}
+.site-header.is-hidden{transform:translateY(-100%)}
+.site-header:focus-within{transform:none}
+.brand{flex-shrink:0}
+
+/* Hero：文字欄稍微放寬，副標允許換行，不再壓到右側照片 */
+.hero-text{flex:1 1 380px;max-width:480px}
+.hero-sub{white-space:normal;text-wrap:balance}
+.hero{padding-bottom:clamp(48px,6vw,96px)}
+.works{padding-top:clamp(64px,8vw,120px)}
+
+/* 背景照片上加一層由左往右淡出的底色，讓文字區保持清楚 */
+.hero-bg::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,
+    color-mix(in oklch,var(--bg) 82%,transparent) 0%,
+    color-mix(in oklch,var(--bg) 55%,transparent) 32%,
+    transparent 58%);
+}
+
+/* 照片上的按鈕加一層半透明底，避免和背景混在一起 */
+.hero .pill:not([aria-pressed="true"]),.hero .chip{
+  background:color-mix(in oklch,var(--bg) 72%,transparent);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+
+/* 長標題換行時兩行長度較平均 */
+.page-head h1,.index h1{text-wrap:balance}
+
+/* 卡片的分類標籤不被擠成兩行 */
+.meta{flex-wrap:wrap;row-gap:4px}
+.meta span:first-child{white-space:nowrap}
+
+/* 觸控裝置沒有 hover，避免點擊時清單左右位移 */
+@media (hover:none){
+  .list a:hover{padding-left:0;padding-right:0}
+  .card:hover{transform:none}
+}
+
+/* ── 平板以下：Hero 改為上下排列 ── */
+@media (max-width:900px){
+  .hero-text{flex-basis:100%;max-width:640px;gap:24px}
+  .hero-fig{flex-basis:100%;max-width:600px;margin-inline:auto}
+  .stage{margin:16px 12px 32px}
+  /* 文字在上、照片在下，底色改為由上往下淡出 */
+  .hero-bg::after{
+    background:linear-gradient(180deg,
+      color-mix(in oklch,var(--bg) 80%,transparent) 0%,
+      color-mix(in oklch,var(--bg) 60%,transparent) 40%,
+      transparent 65%);
+  }
+}
+
+/* ── 手機 ── */
+@media (max-width:640px){
+  /* 導覽列維持單行：隱藏副標字樣與主題按鈕文字 */
+  .site-header .wrap{height:56px;gap:12px}
+  .brand span{display:none}
+  .nav{gap:14px;font-size:13.5px}
+  .theme-btn{padding:7px}
+  .theme-btn span{display:none}
+  html{scroll-padding-top:64px}
+
+  /* 縮小各區塊上下留白 */
+  .hero{padding-top:28px}
+  .works{padding-top:56px;padding-bottom:64px}
+  .about{padding-top:64px;padding-bottom:64px}
+  .contact{padding-top:72px}
+  .index,.page{padding-top:48px;padding-bottom:64px}
+
+  .eyebrow{letter-spacing:.1em}
+  .contact h2{font-size:clamp(36px,10.5vw,112px);text-wrap:balance}
+
+  /* 經歷時間軸：年份放到標題上方 */
+  .tl{padding-left:24px}
+  .tl li{grid-template-columns:1fr;gap:6px}
+  .tl li::before{left:-24px}
+
+  /* 作品頁：圖片放在文字上方 */
+  .list a{gap:16px}
+  .list .cover{order:-1;flex-basis:100%}
+  .list .num{width:auto}
+}
